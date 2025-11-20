@@ -1,39 +1,28 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "void-state-tools"
-version = "1.0.0"
-description = "Self-Aware AI Infrastructure: A layered introspection system for AI runtime transparency"
+name = "void-state"
+version = "1.0.0-mvp-complete"
+description = "Layered AI system architecture for introspection, maintenance, education, mutation, and defense"
 readme = "README.md"
-requires-python = ">=3.8"
 license = {text = "Proprietary"}
 authors = [
-    {name = "Void State Team"}
-]
-keywords = [
-    "ai",
-    "introspection",
-    "self-awareness",
-    "distributed-systems",
-    "runtime-analysis",
-    "hooks",
-    "monitoring",
+    {name = "Void-State Project"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: System :: Monitoring",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Monitoring",
 ]
-
+requires-python = ">=3.9"
 dependencies = [
     "numpy>=2.0.0",
     "scipy>=1.10.0",
@@ -41,33 +30,66 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
-    "pytest-asyncio>=0.21.0",
-    "mypy>=1.4.0",
-    "ruff>=0.14.0",
-    "black>=23.7.0",
-]
+# Machine Learning (Phase 2+)
 ml = [
-    "scikit-learn>=1.3.0",
+    "scikit-learn>=1.0.0",
     "torch>=2.0.0",
 ]
+
+# Distributed Systems (Production)
+distributed = [
+    "redis>=4.0.0",
+    "etcd3>=0.12.0",
+]
+
+# Quantum Scheduling (Phase 2)
 quantum = [
     "dimod>=0.12.0",
+    "dwave-ocean-sdk>=6.0.0",
 ]
-distributed = [
-    "redis>=4.5.0",
+
+# Performance Optimization (Rust bindings)
+rust = [
+    "maturin>=1.0.0",
 ]
+
+# Monitoring & Observability
 monitoring = [
     "prometheus-client>=0.17.0",
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
     "psutil>=5.9.0",
 ]
-security = [
-    "cryptography>=41.0.0",
+
+# Testing
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.0.0",
 ]
+
+# Development
+dev = [
+    "mypy>=1.5.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "pylint>=3.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+# Visualization
+viz = [
+    "matplotlib>=3.5.0",
+    "seaborn>=0.12.0",
+    "plotly>=5.0.0",
+]
+
+# All optional dependencies
 all = [
-    "void-state-tools[dev,ml,quantum,distributed,monitoring,security]",
+    "void-state[ml,distributed,quantum,monitoring,test,dev,viz]",
 ]
 
 [project.scripts]
@@ -76,37 +98,39 @@ void-state = "void_state_tools.cli:main"
 [project.urls]
 Homepage = "https://github.com/apocryphalcontent-max/Void"
 Documentation = "https://github.com/apocryphalcontent-max/Void/blob/main/README.md"
-Repository = "https://github.com/apocryphalcontent-max/Void"
-Issues = "https://github.com/apocryphalcontent-max/Void/issues"
+"Source Code" = "https://github.com/apocryphalcontent-max/Void"
+"Issue Tracker" = "https://github.com/apocryphalcontent-max/Void/issues"
 
 [tool.setuptools]
 packages = ["void_state_tools"]
+include-package-data = true
 
 [tool.setuptools.package-data]
 void_state_tools = ["py.typed"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "void_state_tools"]
-python_files = ["test_*.py", "*_test.py"]
+testpaths = ["void_state_tools/tests"]
+python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
-    "--doctest-modules",
+    "-v",
     "--strict-markers",
-    "--verbose",
+    "--tb=short",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "benchmark: marks tests as benchmarks",
 ]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
 check_untyped_defs = true
 disallow_untyped_calls = false
 warn_redundant_casts = true
@@ -114,32 +138,71 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+strict_optional = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "numpy.*",
+    "scipy.*",
+    "networkx.*",
+    "sklearn.*",
+    "torch.*",
+]
 ignore_missing_imports = true
 
-[tool.ruff]
-line-length = 100
-target-version = "py38"
+[tool.black]
+line-length = 120
+target-version = ["py39", "py310", "py311"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.pytest_cache
+  | \.venv
+  | __pycache__
+  | build
+  | dist
+)/
+'''
 
-[tool.ruff.lint]
+[tool.ruff]
+line-length = 120
+target-version = "py39"
 select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    "UP", # pyupgrade
 ]
 ignore = [
-    "E501",  # line too long (handled by formatter)
+    "E501",  # line too long (handled by black)
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__.py
 
-[tool.black]
-line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
-include = '\.pyi?$'
+[tool.coverage.run]
+source = ["void_state_tools"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

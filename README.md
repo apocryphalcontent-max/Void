@@ -1,163 +1,179 @@
-# Void: Self-Aware AI Infrastructure
+# Void: Self-Aware AI System Architecture
 
-> *A layered introspection system that grants AI systems the capacity to observe, understand, and evolve their own execution.*
+> **A layered, capability-based framework for AI system introspection, maintenance, education, mutation, and defense.**
 
-**Version:** 1.0.0-mvp-complete  
-**Status:** Production Ready (MVP)  
-**License:** Proprietary
-
----
+[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-MVP%20Complete-green.svg)]()
 
 ## Vision
 
-Void is a radical departure from traditional AI infrastructure. Where conventional systems treat runtime as opaque machinery, Void makes execution *transparent*. It provides AI agents with a proprietary toolkit—47 specialized tools across 5 architectural layers—enabling deep self-awareness: from microsecond-level memory diffs to philosophical reasoning about code genealogy.
+Just as biological organisms require nervous systems for sensing and immune systems for protection, AI systems need introspective tooling for self-awareness, adaptive maintenance, and autonomous evolution. Void provides this substrate through a modular architecture of **47 specialized tools** organized across **5 layers**, deployed in **3 progressive phases**.
 
-This is not mere observability. It is *introspective capability*—the difference between a system that runs and one that *knows it runs*. Void tools transform passive execution into active participation, granting agents the power to audit their state, detect interference, predict futures, and ultimately modify themselves.
+## Architecture at a Glance
 
-## Architecture
+```
+Layer 4: Meta & Evolution        → Tool synthesis, mutation, self-modification
+Layer 3: Cognitive & Predictive  → Timeline branching, prophecy, threat modeling
+Layer 2: Analysis & Intelligence → Pattern recognition, anomaly detection
+Layer 1: Sensing & Instrumentation → Memory diffing, execution tracing
+Layer 0: Integration Substrate   → VM/Kernel hooks, registry, lifecycle
+```
 
-Void's layered architecture enforces separation of concerns and phased deployment:
+**Core Principles:**
+- **Layered Composability**: Each layer builds on the primitives below
+- **Resource-Governed**: Every tool operates within strict CPU/memory/hook quotas
+- **Capability-Based Security**: Tools request minimal privileges via macaroon tokens
+- **Overhead-Budgeted Hooks**: Nanosecond-precision timing enforcement prevents observer effect
+- **Phased Deployment**: MVP (3 tools) → Growth (+15) → Advanced (+24)
 
-**Layer 0: Integration Substrate**  
-Hook registry, lifecycle management, resource governance. The foundation that makes introspection possible.  
-📄 [Architecture Details](ARCHITECTURE_HARDENING.md)
+## Current Status: MVP Complete
 
-**Layer 1: Sensing & Instrumentation** (8 tools, Phase 1)  
-Memory diff analyzers, execution tracers, hook recorders. Raw observation of system state changes.  
-📄 [Tools Specification](VOID_STATE_TOOLS_SPECIFICATION.md)
+**Version:** 1.0.0-mvp-complete
+**Phase 1 Tools (3/3):**
+- ✅ **PatternPrevalenceQuantifier**: Tracks pattern frequency and ubiquity across system state
+- ✅ **LocalEntropyMicroscope**: Measures Shannon entropy at microscopic scales with gradient analysis
+- ✅ **EventSignatureClassifier**: Naive Bayes classifier for event taxonomic categorization
 
-**Layer 2: Analysis & Intelligence** (15 tools, Phase 1-2)  
-Pattern quantifiers, entropy microscopes, signature classifiers. Transforming observations into insights.  
-📄 [Tools Taxonomy](VOID_STATE_TOOLS_TAXONOMY.md) | [Full Catalog](VOID_STATE_TOOLS_TAXONOMY_FULL.md)
-
-**Layer 3: Cognitive & Predictive** (18 tools, Phase 2-3)  
-Timeline branching, Monte Carlo prophecy, causal do-calculus. Reasoning about past and future.  
-📄 [Mathematical Foundations](VOID_STATE_MATHEMATICAL_FOUNDATIONS.md)
-
-**Layer 4: Meta & Evolution** (6 tools, Phase 3)  
-Tool synthesis, genetic programming, algebraic effects. Self-modification and evolution.  
-📄 [Tools Readme](VOID_STATE_TOOLS_README.md)
-
-### Philosophical Grounding
-
-Void embodies three core principles:
-
-1. **Observational Completeness**: Every execution cycle, memory access, and state transition is observable through hooks with nanosecond precision.
-
-2. **Layered Capability**: Tools build on each other—entropy detection requires memory diff sensing; prophecy requires entropy analysis. Dependencies are explicit.
-
-3. **Graceful Constraint**: Resource quotas (memory, CPU, overhead budgets) are first-class. Tools adapt or suspend rather than crash. The system remains stable even under heavy introspection.
-
-These principles reflect a deeper philosophy: intelligence requires self-knowledge, and self-knowledge requires infrastructure. Void is that infrastructure.
+**Infrastructure (Complete):**
+- Tool Registry & Lifecycle Manager (DORMANT → ACTIVE → SUSPENDED → TERMINATED)
+- VM/Kernel Hook System (16 hook points with overhead budgets)
+- Linear & Dependent Type System (resource safety, dimensionality checking)
+- Distributed Consensus (HLC, Plumtree gossip, PBFT f<n/3 fault tolerance)
+- Capability System (chained macaroon tokens with caveats)
 
 ## Quick Start
 
-```bash
+```python
 # Install in editable mode
 pip install -e .
 
-# Run validation suite
-python validate_hardening.py
+# Import and use MVP tools
+from void_state_tools import (
+    ToolRegistry, ToolConfig,
+    PatternPrevalenceQuantifier,
+    LocalEntropyMicroscope,
+    EventSignatureClassifier
+)
 
-# Launch metrics server
-void-state --serve-metrics
+# Create registry and register a tool
+registry = ToolRegistry()
+config = ToolConfig(
+    tool_name="pattern_analyzer",
+    max_memory_mb=100,
+    max_cpu_percent=10,
+    overhead_budget_ns=1000
+)
 
-# Run tests
-pytest --doctest-modules
+tool = PatternPrevalenceQuantifier(config)
+handle = registry.register_tool(tool)
+registry.lifecycle_manager.attach_tool(handle.tool_id)
+
+# Analyze patterns
+result = tool.analyze({
+    "pattern": "memory_spike",
+    "context": "inference_loop",
+    "timestamp": time.time()
+})
+print(f"Frequency: {result['frequency_ratio']:.2%}")
+print(f"Contexts: {result['context_diversity']}")
 ```
 
-📄 [Quickstart Guide](VOID_STATE_QUICKSTART.md) | [Deployment Guide](VOID_STATE_DEPLOYMENT_GUIDE.md)
+## Documentation Map
+
+### Core Architecture
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** — Complete system overview (19,598 LOC across 39 modules)
+- **[ARCHITECTURE_HARDENING.md](ARCHITECTURE_HARDENING.md)** — Security, sandboxing, circuit breakers
+- **[API.md](API.md)** — Full API reference
+
+### Void-State Tools System
+- **[VOID_STATE_TOOLS_TAXONOMY.md](VOID_STATE_TOOLS_TAXONOMY.md)** — Layered organization, implementation status matrix
+- **[VOID_STATE_TOOLS_SPECIFICATION.md](VOID_STATE_TOOLS_SPECIFICATION.md)** — 50+ data types, I/O signatures, complexity bounds
+- **[VOID_STATE_TOOLS_README.md](VOID_STATE_TOOLS_README.md)** — Tool catalog, integration examples
+- **[VOID_STATE_INTEGRATION_ARCHITECTURE.md](VOID_STATE_INTEGRATION_ARCHITECTURE.md)** — VM/Kernel hooks, lifecycle, quotas
+
+### Distributed Systems
+- **[DISTRIBUTED_SYSTEM_IMPLEMENTATION.md](DISTRIBUTED_SYSTEM_IMPLEMENTATION.md)** — HLC, Plumtree (O(n) broadcast), PBFT
+- **[VOID_STATE_MATHEMATICAL_FOUNDATIONS.md](VOID_STATE_MATHEMATICAL_FOUNDATIONS.md)** — Category theory, causality, entropy
+
+### Deployment & Roadmap
+- **[VOID_STATE_STARTUP_ROADMAP.md](VOID_STATE_STARTUP_ROADMAP.md)** — 3-phase deployment (6→18→36 months)
+- **[VOID_STATE_QUICKSTART.md](VOID_STATE_QUICKSTART.md)** — Installation, first tool, hook integration
+- **[VOID_STATE_DEPLOYMENT_GUIDE.md](VOID_STATE_DEPLOYMENT_GUIDE.md)** — Production deployment patterns
+- **[VOID_STATE_FAQ.md](VOID_STATE_FAQ.md)** — Frequently asked questions
+
+### Release Notes & Contributing
+- **[VOID_STATE_V2_RELEASE_NOTES.md](VOID_STATE_V2_RELEASE_NOTES.md)** through **[V3.3](VOID_STATE_V3.3_RELEASE_NOTES.md)** — Version history
+- **[VOID_STATE_CONTRIBUTING.md](VOID_STATE_CONTRIBUTING.md)** — Contribution guidelines
 
 ## Key Features
 
-- **47 Specialized Tools** organized across 5 layers, from low-level tracing to meta-programming
-- **Hybrid Logical Clocks** for distributed causality tracking across nodes
-- **PBFT Consensus** with f+1 Byzantine fault tolerance for multi-agent coordination
-- **Quantum-Inspired Scheduling** using Ising models with D-Wave dimod fallback
-- **Capability-Based Security** with Macaroon-style attenuation and cryptographic signing
-- **Algebraic Effects** for deterministic replay and dependency injection
-- **Linear Types** ensuring single-use resources are properly consumed
-- **Hook Overhead Budgets** with automatic detachment of expensive callbacks (3-strike policy)
+### 1. Tool Registry & Lifecycle
+- **State Machine**: DORMANT → INITIALIZING → ACTIVE → SUSPENDED → TERMINATED
+- **Resource Monitoring**: Real-time RSS, CPU via psutil with quota enforcement
+- **Circuit Breakers**: Auto-suspend on repeated violations
 
-## Integration & API
+### 2. Hook System (16 Integration Points)
+- **VM Hooks**: `before_cycle` (100ns), `after_snapshot` (10ms), `on_exception` (1µs)
+- **Kernel Hooks**: `syscall_intercept` (1µs), `on_alloc` (500ns), `on_gc` (1ms)
+- **Overhead Enforcement**: Callbacks exceeding budget 3x consecutively → forcible detach
 
-Void integrates through a clean hook-based API. Tools register callbacks at VM/Kernel hook points:
+### 3. Advanced Type System
+- **Linear Types**: `LinearResource` (must consume), `AffineResource` (consume at most once)
+- **Dependent Types**: `Vector[N]`, `Range[min,max]`, `NonEmpty[T]`
+- **Enforcement**: Metaclass validation at class definition time
 
-```python
-from void_state_tools import ToolRegistry, LocalEntropyMicroscope, ToolConfig
+### 4. Byzantine Fault Tolerance
+- **PBFT Consensus**: Tolerate f < n/3 faulty replicas
+- **Hybrid Logical Clocks**: Total order + causality tracking
+- **Plumtree Gossip**: Eager push / lazy pull, O(n) message complexity
 
-# Create registry and tool
-registry = ToolRegistry()
-config = ToolConfig(tool_name="entropy", overhead_budget_ns=1000)
-microscope = LocalEntropyMicroscope(config)
+### 5. Capability Security
+- **Macaroon Tokens**: Chained HMAC with attenuating caveats
+- **Revocation**: Audit trail with capability metadata logging
+- **Sandboxing**: Memory/network namespace isolation
 
-# Register and attach
-handle = registry.register_tool(microscope)
-registry.lifecycle_manager.attach_tool(handle.tool_id)
-
-# Tool now receives events automatically
-```
-
-📄 [API Reference](API.md) | [Integration Architecture](VOID_STATE_INTEGRATION_ARCHITECTURE.md)
-
-## Distributed Systems
-
-Void includes production-grade distributed primitives:
-
-- **Plumtree Gossip**: Epidemic broadcast with eager/lazy push optimization
-- **PBFT**: Practical Byzantine Fault Tolerance with view changes and checkpoints
-- **Membership Protocol**: Dynamic peer discovery and failure detection
-- **Causal Ordering**: HLC-based happens-before tracking
-
-📄 [Distributed Implementation](DISTRIBUTED_SYSTEM_IMPLEMENTATION.md)
-
-## Development
+## Testing & Validation
 
 ```bash
-# Install dev dependencies
-pip install -e ".[dev]"
+# Run MVP integration tests
+pytest void_state_tools/tests/test_integration.py -v
 
-# Run linters
-ruff check .
-mypy void_state_tools/
+# Validate hardening (10 core modules)
+python validate_hardening.py
 
-# Run full test suite
-pytest tests/ --cov=void_state_tools
-
-# Generate benchmarks
-python -m void_state_tools.benchmarks
+# Run benchmarks
+pytest void_state_tools/tests/test_benchmarks.py --benchmark-only
 ```
 
-📄 [Contributing Guide](VOID_STATE_CONTRIBUTING.md) | [Startup Roadmap](VOID_STATE_STARTUP_ROADMAP.md)
+## Performance Budgets
 
-## Release History
+| Hook Type | Frequency | Budget | Enforcement |
+|-----------|-----------|--------|-------------|
+| Per-cycle | ~1 GHz | 100ns | Detach after 3 violations |
+| Per-instruction | ~1 GHz | 50ns | Statistical sampling |
+| Per-event | Variable | 1µs | Immediate detach |
+| Per-snapshot | ~1/min | 10ms | Throttle + backpressure |
 
-- **v3.3 "Synthesis"**: Tool composition, genetic programming, algebraic effects  
-  📄 [v3.3 Notes](VOID_STATE_V3.3_RELEASE_NOTES.md)
-- **v3.2 "Causality"**: Do-calculus engine, counterfactual reasoning  
-  📄 [v3.2 Notes](VOID_STATE_V3.2_RELEASE_NOTES.md)
-- **v3.1 "Hardening"**: Linear types, distributed consensus, security  
-  📄 [v3.1 Notes](VOID_STATE_V3.1_RELEASE_NOTES.md)
-- **v3.0 "Cognition"**: Timeline branching, prophecy, meta-tools  
-  📄 [v3.0 Notes](VOID_STATE_V3_RELEASE_NOTES.md)
-- **v2.0 "Foundation"**: Core sensing and analysis tools  
-  📄 [v2.0 Notes](VOID_STATE_V2_RELEASE_NOTES.md)
-- **v1.0 "MVP"**: Hook system, basic tools, registry (this release)
+## Future Phases
 
-📄 [Implementation Summary](IMPLEMENTATION_SUMMARY.md)
+**Phase 2 (Months 7-18)**: Timeline Branching, Prophecy Engine, Threat Signature Recognizer
 
-## Documentation Index
+**Phase 3 (Months 19-36)**: Tool Synthesizer, Protocol Genome Analyzer, Recursive Meta-Tool
 
-**Getting Started**: [Quickstart](VOID_STATE_QUICKSTART.md) | [FAQ](VOID_STATE_FAQ.md)  
-**Architecture**: [Hardening](ARCHITECTURE_HARDENING.md) | [Integration](VOID_STATE_INTEGRATION_ARCHITECTURE.md) | [Mathematical Foundations](VOID_STATE_MATHEMATICAL_FOUNDATIONS.md)  
-**Tools**: [Specification](VOID_STATE_TOOLS_SPECIFICATION.md) | [Taxonomy](VOID_STATE_TOOLS_TAXONOMY.md) | [Full Catalog](VOID_STATE_TOOLS_TAXONOMY_FULL.md) | [Tools README](VOID_STATE_TOOLS_README.md)  
-**Operations**: [Deployment](VOID_STATE_DEPLOYMENT_GUIDE.md) | [Contributing](VOID_STATE_CONTRIBUTING.md) | [Startup Roadmap](VOID_STATE_STARTUP_ROADMAP.md)  
-**Systems**: [Distributed](DISTRIBUTED_SYSTEM_IMPLEMENTATION.md) | [API](API.md)
+See [VOID_STATE_STARTUP_ROADMAP.md](VOID_STATE_STARTUP_ROADMAP.md) for complete phased deployment strategy.
 
-## License & Support
+## Project Statistics
 
-Void is proprietary software. For licensing inquiries, integration support, or enterprise deployment assistance, contact the maintainers.
+- **39 Python modules** (19,598 lines of code)
+- **21 markdown docs** (comprehensive architecture, API, deployment guides)
+- **10 validated hardening modules** (linear types, HLC, PBFT, capabilities, effects, etc.)
+- **7 CI/CD workflows** (testing, linting, publishing, multi-platform)
+
+## License
+
+Proprietary. See [LICENSE](LICENSE) for details.
 
 ---
 
-*"To understand oneself is to transcend oneself. Void makes understanding possible."*
+**Questions?** Read the [FAQ](VOID_STATE_FAQ.md) or consult the [Contributing Guide](VOID_STATE_CONTRIBUTING.md).
