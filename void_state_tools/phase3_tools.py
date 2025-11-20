@@ -355,6 +355,36 @@ class {spec.tool_name}(LayeredTool, {base_class}):
     def get_statistics(self) -> Dict[str, Any]:
         \"\"\"Get tool statistics.\"\"\"
         return self._statistics
+
+    def initialize(self) -> bool:
+        \"\"\"Initialize the tool.\"\"\"
+        return True
+
+    def shutdown(self) -> bool:
+        \"\"\"Shutdown the tool.\"\"\"
+        return True
+
+    def suspend(self) -> bool:
+        \"\"\"Suspend the tool.\"\"\"
+        return True
+
+    def resume(self) -> bool:
+        \"\"\"Resume the tool.\"\"\"
+        return True
+
+    def get_metadata(self) -> Dict[str, Any]:
+        \"\"\"Get tool metadata.\"\"\"
+        return {{
+            "name": "{spec.tool_name}",
+            "category": "synthesized",
+            "version": "1.0.0",
+            "description": "{spec.description}",
+            "capabilities": set(),
+            "dependencies": set(),
+            "layer": {spec.layer},
+            "phase": {spec.phase},
+            "priority": "P2"
+        }}
 """
 
         # Combine into full code
@@ -505,6 +535,59 @@ class {spec.tool_name}(LayeredTool, {base_class}):
             "validation": result.validation_results,
             "errors": result.errors,
             "code_length": len(result.tool_code),
+        }
+
+    def initialize(self) -> bool:
+        """
+        Initialize the tool synthesizer by loading default primitives.
+
+        Returns:
+            bool: Always True, indicating successful initialization.
+        """
+        self._load_default_primitives()
+        return True
+
+    def shutdown(self) -> bool:
+        """
+        Clean up resources by clearing primitive library and synthesis history.
+
+        Returns:
+            bool: Always True, indicating successful shutdown.
+        """
+        self._primitives.clear()
+        self._synthesized_tools.clear()
+        return True
+
+    def suspend(self) -> bool:
+        """
+        Suspend tool operation while preserving state.
+
+        Returns:
+            bool: Always True, indicating successful suspension.
+        """
+        return True
+
+    def resume(self) -> bool:
+        """
+        Resume tool operation from suspended state.
+
+        Returns:
+            bool: Always True, indicating successful resumption.
+        """
+        return True
+
+    def get_metadata(self) -> Dict[str, Any]:
+        """Get tool metadata."""
+        return {
+            "name": "Tool Synthesizer",
+            "category": "meta_evolution",
+            "version": "2.0.0",
+            "description": "THE KEYSTONE META-TOOL that generates new tools from specifications",
+            "capabilities": {"tool_synthesis", "code_generation", "primitive_composition", "recursive_self_improvement"},
+            "dependencies": set(),
+            "layer": 4,
+            "phase": 3,
+            "priority": "P0"
         }
 
 

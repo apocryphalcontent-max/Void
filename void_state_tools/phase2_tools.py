@@ -381,6 +381,65 @@ class ThreatSignatureRecognizer(LayeredTool, AnalysisTool):
             for d in recent
         ]
 
+    def initialize(self) -> bool:
+        """
+        Initialize the threat recognizer by loading default signatures.
+
+        Returns:
+            bool: Always True, indicating successful initialization.
+        """
+        self._load_default_signatures()
+        return True
+
+    def shutdown(self) -> bool:
+        """
+        Clean up resources by clearing signature database and detection history.
+
+        Returns:
+            bool: Always True, indicating successful shutdown.
+        """
+        self._signatures.clear()
+        self._signature_index.clear()
+        self._detections.clear()
+        self._event_history.clear()
+        return True
+
+    def suspend(self) -> bool:
+        """
+        Suspend tool operation while preserving state.
+
+        The recognizer maintains all signatures and detection history during suspension.
+
+        Returns:
+            bool: Always True, indicating successful suspension.
+        """
+        return True
+
+    def resume(self) -> bool:
+        """
+        Resume tool operation from suspended state.
+
+        The recognizer continues detecting threats with all previous state intact.
+
+        Returns:
+            bool: Always True, indicating successful resumption.
+        """
+        return True
+
+    def get_metadata(self) -> Dict[str, Any]:
+        """Get tool metadata."""
+        return {
+            "name": "Threat Signature Recognizer",
+            "category": "security_defense",
+            "version": "2.0.0",
+            "description": "Real-time threat detection with signature matching and IOC tracking",
+            "capabilities": {"threat_detection", "signature_matching", "ioc_tracking", "multi_stage_detection"},
+            "dependencies": set(),
+            "layer": 2,
+            "phase": 2,
+            "priority": "P0"
+        }
+
 
 @dataclass
 class BehaviorTrace:
@@ -663,6 +722,59 @@ class BehavioralAnomalyDetector(LayeredTool, MonitoringTool):
                 )
 
             self.detect_anomaly(trace, profile)
+
+    def initialize(self) -> bool:
+        """
+        Initialize the behavioral detector.
+
+        Returns:
+            bool: Always True, indicating successful initialization.
+        """
+        return True
+
+    def shutdown(self) -> bool:
+        """
+        Clean up resources by clearing learned behavioral patterns.
+
+        Returns:
+            bool: Always True, indicating successful shutdown.
+        """
+        self._observed_sequences.clear()
+        self._state_transitions.clear()
+        self._anomalies.clear()
+        return True
+
+    def suspend(self) -> bool:
+        """
+        Suspend tool operation while preserving learned behaviors.
+
+        Returns:
+            bool: Always True, indicating successful suspension.
+        """
+        return True
+
+    def resume(self) -> bool:
+        """
+        Resume tool operation from suspended state.
+
+        Returns:
+            bool: Always True, indicating successful resumption.
+        """
+        return True
+
+    def get_metadata(self) -> Dict[str, Any]:
+        """Get tool metadata."""
+        return {
+            "name": "Behavioral Anomaly Detector",
+            "category": "security_defense",
+            "version": "2.0.0",
+            "description": "Detects anomalous behavior patterns through sequence learning and comparison",
+            "capabilities": {"behavior_learning", "sequence_analysis", "anomaly_detection", "risk_scoring"},
+            "dependencies": set(),
+            "layer": 2,
+            "phase": 2,
+            "priority": "P1"
+        }
 
 
 # ============================================================================
@@ -970,6 +1082,58 @@ class TimelineBranchingEngine(LayeredTool, AnalysisTool):
             "convergence_points": list(fork.convergence_points),
         }
 
+    def initialize(self) -> bool:
+        """
+        Initialize the timeline branching engine.
+
+        Returns:
+            bool: Always True, indicating successful initialization.
+        """
+        return True
+
+    def shutdown(self) -> bool:
+        """
+        Clean up resources by clearing timeline history.
+
+        Returns:
+            bool: Always True, indicating successful shutdown.
+        """
+        self._timelines.clear()
+        self._active_timelines.clear()
+        return True
+
+    def suspend(self) -> bool:
+        """
+        Suspend tool operation while preserving timeline state.
+
+        Returns:
+            bool: Always True, indicating successful suspension.
+        """
+        return True
+
+    def resume(self) -> bool:
+        """
+        Resume tool operation from suspended state.
+
+        Returns:
+            bool: Always True, indicating successful resumption.
+        """
+        return True
+
+    def get_metadata(self) -> Dict[str, Any]:
+        """Get tool metadata."""
+        return {
+            "name": "Timeline Branching Engine",
+            "category": "cognitive_predictive",
+            "version": "2.0.0",
+            "description": "Creates and manages alternative execution timelines for what-if analysis",
+            "capabilities": {"timeline_branching", "state_forking", "divergence_tracking", "convergence_detection"},
+            "dependencies": set(),
+            "layer": 3,
+            "phase": 2,
+            "priority": "P1"
+        }
+
 
 @dataclass
 class ProphecyDistribution:
@@ -1208,7 +1372,7 @@ class ProphecyEngine(LayeredTool, AnalysisTool):
             # If variance increases significantly, mark as critical
             if step > 1:
                 prev_variance = self._calculate_step_variance(trajectories, step - 1)
-                if variance > prev_variance * 1.5:  # 50% increase
+                if variance > prev_variance * 1.5 and prev_variance > 0:  # 50% increase
                     critical_events.append({
                         "step": step,
                         "time": step * self._time_step,
@@ -1286,6 +1450,57 @@ class ProphecyEngine(LayeredTool, AnalysisTool):
             "uncertainty_dimension": len(distribution.uncertainty) if distribution.uncertainty else 0,
             "num_critical_events": len(distribution.critical_events),
             "critical_events": distribution.critical_events,
+        }
+
+    def initialize(self) -> bool:
+        """
+        Initialize the prophecy engine.
+
+        Returns:
+            bool: Always True, indicating successful initialization.
+        """
+        return True
+
+    def shutdown(self) -> bool:
+        """
+        Clean up resources by clearing forecast history.
+
+        Returns:
+            bool: Always True, indicating successful shutdown.
+        """
+        self._forecasts.clear()
+        return True
+
+    def suspend(self) -> bool:
+        """
+        Suspend tool operation while preserving forecast state.
+
+        Returns:
+            bool: Always True, indicating successful suspension.
+        """
+        return True
+
+    def resume(self) -> bool:
+        """
+        Resume tool operation from suspended state.
+
+        Returns:
+            bool: Always True, indicating successful resumption.
+        """
+        return True
+
+    def get_metadata(self) -> Dict[str, Any]:
+        """Get tool metadata."""
+        return {
+            "name": "Prophecy Engine",
+            "category": "cognitive_predictive",
+            "version": "2.0.0",
+            "description": "Projects probable future states via Monte Carlo simulation",
+            "capabilities": {"forward_simulation", "monte_carlo", "uncertainty_quantification", "critical_event_detection"},
+            "dependencies": set(),
+            "layer": 3,
+            "phase": 2,
+            "priority": "P1"
         }
 
 
