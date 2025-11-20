@@ -10,7 +10,7 @@ This package provides the core infrastructure and tools across all phases:
 - Phase 3 (Advanced): Tool synthesis and meta-tooling 🚧
 """
 
-__version__ = "2.0.0-phase2-active"
+__version__ = "3.0.0-phase3-complete"
 __author__ = "Void-State Project"
 __license__ = "Proprietary"
 
@@ -75,11 +75,19 @@ from .phase2_tools import (
 from .phase3_tools import (
     # Layer 4 Meta-Tools
     ToolSynthesizer,
+    ToolCombinator,
+    ToolMutator,
+    ToolFitnessEvaluator,
     # Data types
     PrimitiveType,
     ToolPrimitive,
     ToolSpecification,
     SynthesisResult,
+    CompositionStrategy,
+    CompositeTool,
+    Mutation,
+    MutatedTool,
+    FitnessReport,
 )
 
 # Public API surface
@@ -141,12 +149,20 @@ __all__ = [
 
     # Phase 3 Advanced Tools
     "ToolSynthesizer",
+    "ToolCombinator",
+    "ToolMutator",
+    "ToolFitnessEvaluator",
 
     # Phase 3 Data Types
     "PrimitiveType",
     "ToolPrimitive",
     "ToolSpecification",
     "SynthesisResult",
+    "CompositionStrategy",
+    "CompositeTool",
+    "Mutation",
+    "MutatedTool",
+    "FitnessReport",
 ]
 
 
@@ -178,6 +194,9 @@ def get_phase3_tools():
     """Get list of available Phase 3 (Advanced) tools."""
     return [
         ToolSynthesizer,
+        ToolCombinator,
+        ToolMutator,
+        ToolFitnessEvaluator,
     ]
 
 
@@ -210,10 +229,15 @@ def get_deployment_status():
         },
         "phase3": {
             "status": "active",
-            "progress": "4%",  # 1 of 24 planned tools
-            "tools_complete": 1,
+            "progress": "17%",  # 4 of 24 planned tools
+            "tools_complete": 4,
             "tools_total": 24,
-            "tools": ["ToolSynthesizer (Meta-Tool)"],
-            "note": "ToolSynthesizer can generate remaining tools",
+            "tools": [
+                "ToolSynthesizer (Meta-Tool)",
+                "ToolCombinator",
+                "ToolMutator",
+                "ToolFitnessEvaluator"
+            ],
+            "note": "Complete meta-tooling system for tool creation and evolution",
         },
     }

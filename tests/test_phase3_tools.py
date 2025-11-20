@@ -3,15 +3,24 @@ Comprehensive tests for Phase 3 (Advanced) tools.
 
 Tests:
 - ToolSynthesizer
+- ToolCombinator
+- ToolMutator
+- ToolFitnessEvaluator
 """
 
 import pytest
 from void_state_tools import (
     ToolConfig,
     ToolSynthesizer,
+    ToolCombinator,
+    ToolMutator,
+    ToolFitnessEvaluator,
     PrimitiveType,
     ToolPrimitive,
     ToolSpecification,
+    CompositionStrategy,
+    PatternPrevalenceQuantifier,
+    LocalEntropyMicroscope,
 )
 from void_state_tools.clock import DeterministicClock
 
@@ -428,6 +437,491 @@ class TestIntegration:
         # Statistics should show 2 syntheses
         stats = tool.get_statistics()
         assert stats["total_syntheses"] == 2
+
+
+class TestToolCombinator:
+    """Test ToolCombinator functionality."""
+
+    def test_instantiation(self):
+        """Test tool can be instantiated."""
+        config = ToolConfig(tool_name="combinator_test")
+        clock = DeterministicClock(start_time=1000.0)
+        tool = ToolCombinator(config, clock=clock)
+
+        assert tool is not None
+        assert tool.get_layer() == 4
+        assert tool.get_phase() == 3
+
+    def test_metadata(self):
+        """Test tool metadata."""
+        config = ToolConfig(tool_name="combinator_test")
+        tool = ToolCombinator(config)
+        meta = tool.get_metadata()
+
+        assert meta["name"] == "Tool Combinator"
+        assert meta["layer"] == 4
+        assert meta["phase"] == 3
+        assert meta["priority"] == "P1"
+        assert "tool_composition" in meta["capabilities"]
+
+    def test_lifecycle_methods(self):
+        """Test lifecycle methods."""
+        config = ToolConfig(tool_name="combinator_test")
+        tool = ToolCombinator(config)
+
+        assert tool.initialize() is True
+        assert tool.suspend() is True
+        assert tool.resume() is True
+        assert tool.shutdown() is True
+
+    def test_register_tool(self):
+        """Test registering tools for composition."""
+        config = ToolConfig(tool_name="combinator_test")
+        combinator = ToolCombinator(config)
+
+        # Register some tools
+        tool1_config = ToolConfig(tool_name="tool1")
+        tool1 = PatternPrevalenceQuantifier(tool1_config)
+
+        tool2_config = ToolConfig(tool_name="tool2")
+        tool2 = LocalEntropyMicroscope(tool2_config)
+
+        combinator.register_tool(tool1)
+        combinator.register_tool(tool2)
+
+        stats = combinator.get_statistics()
+        assert stats["registered_tools"] == 2
+
+    def test_pipeline_composition(self):
+        """Test pipeline composition strategy."""
+        config = ToolConfig(tool_name="combinator_test")
+        clock = DeterministicClock(start_time=1000.0)
+        combinator = ToolCombinator(config, clock=clock)
+
+        # Register tools
+        tool1_config = ToolConfig(tool_name="tool1")
+        tool1 = PatternPrevalenceQuantifier(tool1_config)
+
+        tool2_config = ToolConfig(tool_name="tool2")
+        tool2 = LocalEntropyMicroscope(tool2_config)
+
+        combinator.register_tool(tool1)
+        combinator.register_tool(tool2)
+
+        # Create pipeline strategy
+        strategy = CompositionStrategy(
+            strategy_type="pipeline",
+            dataflow_graph={}
+        )
+
+        # Combine tools
+        composite = combinator.combine_tools(["tool1", "tool2"], strategy)
+
+        assert composite.name.startswith("Composite_pipeline")
+        assert len(composite.component_tools) == 2
+        assert "tool1" in composite.component_tools
+        assert "tool2" in composite.component_tools
+        assert composite.composition_graph["tool1"] == ["tool2"]
+
+    def test_parallel_composition(self):
+        """Test parallel composition strategy."""
+        config = ToolConfig(tool_name="combinator_test")
+        clock = DeterministicClock(start_time=1000.0)
+        combinator = ToolCombinator(config, clock=clock)
+
+        # Register tools
+        tool1_config = ToolConfig(tool_name="tool1")
+        tool1 = PatternPrevalenceQuantifier(tool1_config)
+
+        tool2_config = ToolConfig(tool_name="tool2")
+        tool2 = LocalEntropyMicroscope(tool2_config)
+
+        combinator.register_tool(tool1)
+        combinator.register_tool(tool2)
+
+        # Create parallel strategy
+        strategy = CompositionStrategy(
+            strategy_type="parallel",
+            dataflow_graph={}
+        )
+
+        # Combine tools
+        composite = combinator.combine_tools(["tool1", "tool2"], strategy)
+
+        assert composite.name.startswith("Composite_parallel")
+        assert composite.performance_profile["parallelism"] == 2
+
+    def test_synthesize_method(self):
+        """Test synthesize method interface."""
+        config = ToolConfig(tool_name="combinator_test")
+        combinator = ToolCombinator(config)
+
+        # Register tools
+        tool1_config = ToolConfig(tool_name="tool1")
+        tool1 = PatternPrevalenceQuantifier(tool1_config)
+        combinator.register_tool(tool1)
+
+        tool2_config = ToolConfig(tool_name="tool2")
+        tool2 = LocalEntropyMicroscope(tool2_config)
+        combinator.register_tool(tool2)
+
+        # Call synthesize
+        result = combinator.synthesize({
+            "tool_names": ["tool1", "tool2"],
+            "strategy_type": "pipeline"
+        })
+
+        assert "name" in result
+        assert result["component_count"] == 2
+
+    def test_invalid_tool_name(self):
+        """Test error handling for unregistered tools."""
+        config = ToolConfig(tool_name="combinator_test")
+        combinator = ToolCombinator(config)
+
+        strategy = CompositionStrategy(
+            strategy_type="pipeline",
+            dataflow_graph={}
+        )
+
+        with pytest.raises(ValueError, match="Tool not registered"):
+            combinator.combine_tools(["nonexistent"], strategy)
+
+
+class TestToolMutator:
+    """Test ToolMutator functionality."""
+
+    def test_instantiation(self):
+        """Test tool can be instantiated."""
+        config = ToolConfig(tool_name="mutator_test")
+        clock = DeterministicClock(start_time=1000.0)
+        tool = ToolMutator(config, clock=clock)
+
+        assert tool is not None
+        assert tool.get_layer() == 4
+        assert tool.get_phase() == 3
+
+    def test_metadata(self):
+        """Test tool metadata."""
+        config = ToolConfig(tool_name="mutator_test")
+        tool = ToolMutator(config)
+        meta = tool.get_metadata()
+
+        assert meta["name"] == "Tool Mutator"
+        assert meta["layer"] == 4
+        assert meta["phase"] == 3
+        assert meta["priority"] == "P1"
+        assert "tool_mutation" in meta["capabilities"]
+
+    def test_lifecycle_methods(self):
+        """Test lifecycle methods."""
+        config = ToolConfig(tool_name="mutator_test")
+        tool = ToolMutator(config)
+
+        assert tool.initialize() is True
+        assert tool.suspend() is True
+        assert tool.resume() is True
+        assert tool.shutdown() is True
+
+    def test_register_tool(self):
+        """Test registering tools for mutation."""
+        config = ToolConfig(tool_name="mutator_test")
+        mutator = ToolMutator(config)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = PatternPrevalenceQuantifier(tool_config)
+
+        mutator.register_tool(tool)
+
+        stats = mutator.get_statistics()
+        assert stats["registered_tools"] == 1
+
+    def test_mutate_tool(self):
+        """Test tool mutation."""
+        config = ToolConfig(tool_name="mutator_test")
+        clock = DeterministicClock(start_time=1000.0)
+        mutator = ToolMutator(config, clock=clock)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = PatternPrevalenceQuantifier(tool_config)
+        mutator.register_tool(tool)
+
+        # Mutate the tool
+        mutated = mutator.mutate_tool("test_tool", mutation_budget=3)
+
+        assert mutated.original_tool == "test_tool"
+        assert len(mutated.mutations) > 0
+        assert mutated.fitness_delta >= 0.0
+
+    def test_mutation_types(self):
+        """Test different mutation types."""
+        config = ToolConfig(tool_name="mutator_test")
+        mutator = ToolMutator(config)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = LocalEntropyMicroscope(tool_config)
+        mutator.register_tool(tool)
+
+        # Test parameter mutations
+        mutated = mutator.mutate_tool(
+            "test_tool",
+            mutation_budget=2,
+            mutation_types=["parameter"]
+        )
+
+        assert all(m.mutation_type == "parameter" for m in mutated.mutations)
+
+        # Test optimization mutations
+        mutated2 = mutator.mutate_tool(
+            "test_tool",
+            mutation_budget=2,
+            mutation_types=["optimization"]
+        )
+
+        assert all(m.mutation_type == "optimization" for m in mutated2.mutations)
+
+    def test_synthesize_method(self):
+        """Test synthesize method interface."""
+        config = ToolConfig(tool_name="mutator_test")
+        mutator = ToolMutator(config)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = PatternPrevalenceQuantifier(tool_config)
+        mutator.register_tool(tool)
+
+        # Call synthesize
+        result = mutator.synthesize({
+            "tool_name": "test_tool",
+            "mutation_budget": 3
+        })
+
+        assert result["original_tool"] == "test_tool"
+        assert result["mutations_applied"] > 0
+
+    def test_invalid_tool_name(self):
+        """Test error handling for unregistered tools."""
+        config = ToolConfig(tool_name="mutator_test")
+        mutator = ToolMutator(config)
+
+        with pytest.raises(ValueError, match="Tool not registered"):
+            mutator.mutate_tool("nonexistent")
+
+
+class TestToolFitnessEvaluator:
+    """Test ToolFitnessEvaluator functionality."""
+
+    def test_instantiation(self):
+        """Test tool can be instantiated."""
+        config = ToolConfig(tool_name="evaluator_test")
+        clock = DeterministicClock(start_time=1000.0)
+        tool = ToolFitnessEvaluator(config, clock=clock)
+
+        assert tool is not None
+        assert tool.get_layer() == 4
+        assert tool.get_phase() == 3
+
+    def test_metadata(self):
+        """Test tool metadata."""
+        config = ToolConfig(tool_name="evaluator_test")
+        tool = ToolFitnessEvaluator(config)
+        meta = tool.get_metadata()
+
+        assert meta["name"] == "Tool Fitness Evaluator"
+        assert meta["layer"] == 4
+        assert meta["phase"] == 3
+        assert meta["priority"] == "P1"
+        assert "fitness_evaluation" in meta["capabilities"]
+
+    def test_lifecycle_methods(self):
+        """Test lifecycle methods."""
+        config = ToolConfig(tool_name="evaluator_test")
+        tool = ToolFitnessEvaluator(config)
+
+        assert tool.initialize() is True
+        assert tool.suspend() is True
+        assert tool.resume() is True
+        assert tool.shutdown() is True
+
+    def test_register_tool(self):
+        """Test registering tools for evaluation."""
+        config = ToolConfig(tool_name="evaluator_test")
+        evaluator = ToolFitnessEvaluator(config)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = PatternPrevalenceQuantifier(tool_config)
+
+        evaluator.register_tool(tool)
+
+        stats = evaluator.get_statistics()
+        assert stats["registered_tools"] == 1
+
+    def test_evaluate_fitness(self):
+        """Test fitness evaluation."""
+        config = ToolConfig(tool_name="evaluator_test")
+        clock = DeterministicClock(start_time=1000.0)
+        evaluator = ToolFitnessEvaluator(config, clock=clock)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = PatternPrevalenceQuantifier(tool_config)
+        evaluator.register_tool(tool)
+
+        # Evaluate fitness
+        report = evaluator.evaluate_fitness("test_tool")
+
+        assert report.tool_name == "test_tool"
+        assert 0.0 <= report.overall_fitness <= 1.0
+        assert "performance" in report.metric_scores
+        assert "correctness" in report.metric_scores
+        assert "robustness" in report.metric_scores
+        assert "maintainability" in report.metric_scores
+        assert isinstance(report.failure_modes, list)
+        assert isinstance(report.recommendations, list)
+
+    def test_evaluate_with_test_data(self):
+        """Test fitness evaluation with test data."""
+        config = ToolConfig(tool_name="evaluator_test")
+        evaluator = ToolFitnessEvaluator(config)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = PatternPrevalenceQuantifier(tool_config)
+        evaluator.register_tool(tool)
+
+        # Prepare test data
+        test_data = [
+            {"pattern": "test", "context": "test_context"},
+            {"pattern": "test2", "context": "test_context2"}
+        ]
+
+        # Evaluate with test data
+        report = evaluator.evaluate_fitness("test_tool", test_data)
+
+        assert report.overall_fitness > 0.0
+
+    def test_analyze_method(self):
+        """Test analyze method interface."""
+        config = ToolConfig(tool_name="evaluator_test")
+        evaluator = ToolFitnessEvaluator(config)
+
+        # Register a tool
+        tool_config = ToolConfig(tool_name="test_tool")
+        tool = LocalEntropyMicroscope(tool_config)
+        evaluator.register_tool(tool)
+
+        # Call analyze
+        result = evaluator.analyze({
+            "tool_name": "test_tool"
+        })
+
+        assert result["tool_name"] == "test_tool"
+        assert "overall_fitness" in result
+        assert "metric_scores" in result
+        assert "failure_count" in result
+
+    def test_invalid_tool_name(self):
+        """Test error handling for unregistered tools."""
+        config = ToolConfig(tool_name="evaluator_test")
+        evaluator = ToolFitnessEvaluator(config)
+
+        with pytest.raises(ValueError, match="Tool not registered"):
+            evaluator.evaluate_fitness("nonexistent")
+
+    def test_recommendations_generation(self):
+        """Test that recommendations are generated."""
+        config = ToolConfig(tool_name="evaluator_test")
+        evaluator = ToolFitnessEvaluator(config)
+
+        # Register a well-formed tool
+        tool_config = ToolConfig(tool_name="good_tool")
+        tool = PatternPrevalenceQuantifier(tool_config)
+        evaluator.register_tool(tool)
+
+        report = evaluator.evaluate_fitness("good_tool")
+
+        # Should have recommendations
+        assert len(report.recommendations) > 0
+
+    def test_statistics_tracking(self):
+        """Test statistics tracking."""
+        config = ToolConfig(tool_name="evaluator_test")
+        evaluator = ToolFitnessEvaluator(config)
+
+        # Register tools
+        tool1_config = ToolConfig(tool_name="tool1")
+        tool1 = PatternPrevalenceQuantifier(tool1_config)
+        evaluator.register_tool(tool1)
+
+        tool2_config = ToolConfig(tool_name="tool2")
+        tool2 = LocalEntropyMicroscope(tool2_config)
+        evaluator.register_tool(tool2)
+
+        # Evaluate both
+        evaluator.evaluate_fitness("tool1")
+        evaluator.evaluate_fitness("tool2")
+
+        stats = evaluator.get_statistics()
+        assert stats["total_evaluations"] == 2
+        assert stats["average_fitness"] > 0.0
+
+
+class TestPhase3Integration:
+    """Integration tests for Phase 3 tools working together."""
+
+    def test_full_meta_tooling_pipeline(self):
+        """Test complete meta-tooling pipeline."""
+        clock = DeterministicClock(start_time=1000.0)
+
+        # Create synthesizer
+        synth_config = ToolConfig(tool_name="synthesizer")
+        synthesizer = ToolSynthesizer(synth_config, clock=clock)
+
+        # Create evaluator
+        eval_config = ToolConfig(tool_name="evaluator")
+        evaluator = ToolFitnessEvaluator(eval_config, clock=clock)
+
+        # Create mutator
+        mut_config = ToolConfig(tool_name="mutator")
+        mutator = ToolMutator(mut_config, clock=clock)
+
+        # Synthesize a tool
+        spec = ToolSpecification(
+            tool_name="SynthesizedTool",
+            tool_type="AnalysisTool",
+            layer=2,
+            phase=2,
+            description="Test synthesized tool",
+            input_signature="Dict[str, Any]",
+            output_signature="Dict[str, Any]",
+            required_primitives=["calculate_mean"],
+            composition_plan=[("calculate_mean", {})],
+            complexity_target="O(N)",
+            overhead_target_ms=1.0
+        )
+
+        result = synthesizer.synthesize_tool(spec)
+        assert result.success is True
+
+        # Instantiate the synthesized tool
+        tool_config = ToolConfig(tool_name="synth_instance")
+        synth_tool = result.tool_class(tool_config, clock=clock)
+
+        # Evaluate the synthesized tool
+        evaluator.register_tool(synth_tool)
+        fitness_report = evaluator.evaluate_fitness("synth_instance")
+
+        assert fitness_report.overall_fitness > 0.0
+
+        # Mutate the synthesized tool
+        mutator.register_tool(synth_tool)
+        mutated = mutator.mutate_tool("synth_instance", mutation_budget=2)
+
+        assert len(mutated.mutations) > 0
 
 
 if __name__ == "__main__":
