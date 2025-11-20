@@ -167,7 +167,7 @@ def run_demo():
 
     for pattern, context in patterns:
         clock.advance(0.5)  # Advance by 500ms between observations
-        result = ppq.analyze({
+        ppq.analyze({
             "pattern": pattern,
             "context": context,
             "timestamp": clock.now()
