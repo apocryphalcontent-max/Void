@@ -131,9 +131,9 @@ result = synthesizer.synthesize_tool(spec)
     "total_planned": 47,
     "completion_percentage": "17%",
 
-    "phase1": "complete" (3/3 tools),
-    "phase2": "active" (4/15 tools),
-    "phase3": "active" (1/24 tools),
+    "phase1": "complete (3/3 tools)",
+    "phase2": "active (4/15 tools)",
+    "phase3": "active (1/24 tools)",
 }
 ```
 
