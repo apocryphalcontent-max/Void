@@ -1,0 +1,42 @@
+# Void-State Tools Requirements
+# Core dependencies for the proprietary tools system
+# Version: 3.3.0 "Synthesis"
+
+# Numerical computing (required)
+numpy>=2.0.0
+scipy>=1.10.0
+networkx>=2.8.0
+
+# Optional dependencies for advanced features
+# Uncomment as needed:
+
+# Machine learning (for ML-enhanced tools)
+# scikit-learn>=1.3.0
+# torch>=2.0.0
+# tensorflow>=2.13.0
+
+# Distributed systems (for cluster deployment)
+# redis>=4.5.0
+# etcd3>=0.12.0
+
+# Monitoring and observability
+# prometheus-client>=0.17.0
+# opentelemetry-api>=1.19.0
+# opentelemetry-sdk>=1.19.0
+
+# Testing
+# pytest>=7.4.0
+# pytest-cov>=4.1.0
+# pytest-asyncio>=0.21.0
+# hypothesis>=6.82.0
+
+# Visualization
+# matplotlib>=3.7.0
+# seaborn>=0.12.0
+# plotly>=5.15.0
+
+# Development tools
+# mypy>=1.4.0
+# black>=23.7.0
+# flake8>=6.0.0
+# pylint>=2.17.0
