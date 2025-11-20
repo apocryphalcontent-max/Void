@@ -22,12 +22,7 @@ from void_state_tools import (
     HookTiming,
 )
 from void_state_tools.clock import DeterministicClock, SystemClock, get_clock, set_clock
-from void_state_tools.resource_governor import (
-    ResourceGovernor,
-    QuotaPolicy,
-    ResourceUsage,
-    EnforcementAction,
-)
+# Removed unused imports from void_state_tools.resource_governor
 from void_state_tools.layered_tool import LayerPhaseMismatchError
 
 
