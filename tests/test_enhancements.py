@@ -376,7 +376,6 @@ class TestIntegration:
     def test_hook_enforcement_with_registry(self):
         """Test hook enforcement within ToolRegistry context."""
         clock = DeterministicClock(start_time=1000.0)
-        registry = ToolRegistry(enable_resource_governor=True, clock=clock)
 
         # Create a hook with enforcement
         hook_point = HookPoint(
