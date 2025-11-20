@@ -428,7 +428,3 @@ class TestIntegration:
         # Statistics should show 2 syntheses
         stats = tool.get_statistics()
         assert stats["total_syntheses"] == 2
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short"])

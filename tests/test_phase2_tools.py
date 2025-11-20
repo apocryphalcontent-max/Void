@@ -458,7 +458,3 @@ class TestIntegration:
         if registry._resource_governor:
             stats = registry._resource_governor.get_statistics()
             assert stats["active_tools"] == 4
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short"])

@@ -10,7 +10,6 @@ Tests:
 
 import pytest
 import threading
-import time
 from void_state_tools import (
     ToolConfig,
     ToolRegistry,
@@ -400,7 +399,3 @@ class TestIntegration:
         stats = hook_point.get_callback_statistics()
         detached = [s for s in stats if not s['enabled']]
         assert len(detached) == 1
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short"])

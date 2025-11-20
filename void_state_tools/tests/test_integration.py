@@ -590,7 +590,3 @@ class TestIntegrationScenario:
 
         # Tool should still be active (analysis is fast enough)
         assert handle.state == ToolState.ACTIVE
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])

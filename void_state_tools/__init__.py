@@ -188,31 +188,40 @@ def get_all_tools():
 
 def get_deployment_status():
     """Get current deployment status."""
+    # Calculate phase progress dynamically
+    phase1_tools = len(get_mvp_tools())
+    phase1_total = 3
+    phase2_tools = len(get_phase2_tools())
+    phase2_total = 15
+    phase3_tools = len(get_phase3_tools())
+    phase3_total = 24
+    total_planned = phase1_total + phase2_total + phase3_total
+    
     return {
         "current_phase": "Phase 3 (Advanced)",
         "version": __version__,
         "total_tools": len(get_all_tools()),
-        "total_planned": 47,
-        "completion_percentage": f"{int((len(get_all_tools()) / 47) * 100)}%",
+        "total_planned": total_planned,
+        "completion_percentage": f"{int((len(get_all_tools()) / total_planned) * 100)}%",
         "phase1": {
             "status": "complete",
-            "progress": "100%",
-            "tools_complete": 3,
-            "tools_total": 3,
+            "progress": f"{int((phase1_tools / phase1_total) * 100)}%",
+            "tools_complete": phase1_tools,
+            "tools_total": phase1_total,
             "tools": ["PatternPrevalenceQuantifier", "LocalEntropyMicroscope", "EventSignatureClassifier"],
         },
         "phase2": {
             "status": "active",
-            "progress": "27%",  # 4 of 15 planned tools
-            "tools_complete": 4,
-            "tools_total": 15,
+            "progress": f"{int((phase2_tools / phase2_total) * 100)}%",
+            "tools_complete": phase2_tools,
+            "tools_total": phase2_total,
             "tools": ["ThreatSignatureRecognizer", "BehavioralAnomalyDetector", "TimelineBranchingEngine", "ProphecyEngine"],
         },
         "phase3": {
             "status": "active",
-            "progress": "4%",  # 1 of 24 planned tools
-            "tools_complete": 1,
-            "tools_total": 24,
+            "progress": f"{int((phase3_tools / phase3_total) * 100)}%",
+            "tools_complete": phase3_tools,
+            "tools_total": phase3_total,
             "tools": ["ToolSynthesizer (Meta-Tool)"],
             "note": "ToolSynthesizer can generate remaining tools",
         },
