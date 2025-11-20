@@ -4,29 +4,29 @@ Base classes and interfaces for Void-State tools.
 This module defines the core abstractions that all tools must implement.
 """
 
-import time
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
+
+if TYPE_CHECKING:
+    from .clock import Clock
 
 
 class ToolState(Enum):
     """Possible states of a tool"""
-
-    DORMANT = "dormant"  # Registered but not active
+    DORMANT = "dormant"           # Registered but not active
     INITIALIZING = "initializing"  # Loading and preparing
-    ACTIVE = "active"  # Running and processing
-    SUSPENDED = "suspended"  # Temporarily paused
-    TERMINATED = "terminated"  # Cleanly shut down
-    ERROR = "error"  # Error state
+    ACTIVE = "active"              # Running and processing
+    SUSPENDED = "suspended"        # Temporarily paused
+    TERMINATED = "terminated"      # Cleanly shut down
+    ERROR = "error"                # Error state
 
 
 @dataclass
 class ToolConfig:
     """Configuration for a tool"""
-
     # Identity
     tool_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     tool_name: str = ""
@@ -53,7 +53,6 @@ class ToolConfig:
 @dataclass
 class ToolMetrics:
     """Performance metrics for a tool"""
-
     # Timing
     total_runtime_seconds: float = 0.0
     average_hook_latency_ns: float = 0.0
@@ -83,12 +82,16 @@ class ToolMetrics:
 class ToolHandle:
     """Handle for managing a tool instance"""
 
-    def __init__(self, tool_id: str, tool: "Tool"):
+    def __init__(self, tool_id: str, tool: 'Tool', clock: Optional['Clock'] = None):
         self.tool_id = tool_id
         self._tool = tool
         self._state = ToolState.DORMANT
         self._metrics = ToolMetrics()
-        self._start_time = time.time()
+
+        # Delay import to avoid circular dependency
+        from .clock import get_clock
+        self._clock = clock or get_clock()
+        self._start_time = self._clock.now()
 
     @property
     def state(self) -> ToolState:
@@ -98,7 +101,7 @@ class ToolHandle:
     @property
     def metrics(self) -> ToolMetrics:
         """Get tool metrics"""
-        self._metrics.total_runtime_seconds = time.time() - self._start_time
+        self._metrics.total_runtime_seconds = self._clock.now() - self._start_time
         return self._metrics
 
     def update_state(self, new_state: ToolState) -> None:
@@ -117,9 +120,9 @@ class ToolHandle:
         else:
             # Running average
             self._metrics.average_hook_latency_ns = (
-                self._metrics.average_hook_latency_ns * (self._metrics.hooks_executed - 1)
-                + latency_ns
-            ) / self._metrics.hooks_executed
+                (self._metrics.average_hook_latency_ns * (self._metrics.hooks_executed - 1) + latency_ns)
+                / self._metrics.hooks_executed
+            )
 
         self._metrics.max_hook_latency_ns = max(self._metrics.max_hook_latency_ns, latency_ns)
 
@@ -127,13 +130,13 @@ class ToolHandle:
         """Record an error"""
         self._metrics.error_count += 1
         self._metrics.last_error = error
-        self._metrics.last_error_time = time.time()
+        self._metrics.last_error_time = self._clock.now()
 
 
 class Tool(ABC):
     """
     Abstract base class for all Void-State tools.
-
+    
     All tools must inherit from this class and implement the required methods.
     Tools are the fundamental building blocks of the Void-State system's
     introspection, maintenance, education, mutation, and defense capabilities.
@@ -142,7 +145,7 @@ class Tool(ABC):
     def __init__(self, config: ToolConfig):
         """
         Initialize the tool.
-
+        
         Args:
             config: Tool configuration
         """
@@ -154,10 +157,10 @@ class Tool(ABC):
     def initialize(self) -> bool:
         """
         Initialize the tool.
-
+        
         Called when the tool transitions from DORMANT to INITIALIZING.
         Perform any setup, resource allocation, or preparation here.
-
+        
         Returns:
             True if initialization succeeded, False otherwise
         """
@@ -167,10 +170,10 @@ class Tool(ABC):
     def shutdown(self) -> bool:
         """
         Shutdown the tool.
-
+        
         Called when the tool transitions to TERMINATED.
         Clean up resources, unregister hooks, and perform finalization.
-
+        
         Returns:
             True if shutdown succeeded, False otherwise
         """
@@ -180,10 +183,10 @@ class Tool(ABC):
     def suspend(self) -> bool:
         """
         Suspend the tool.
-
+        
         Called when the tool transitions to SUSPENDED.
         Pause processing but maintain state for later resumption.
-
+        
         Returns:
             True if suspension succeeded, False otherwise
         """
@@ -193,10 +196,10 @@ class Tool(ABC):
     def resume(self) -> bool:
         """
         Resume the tool.
-
+        
         Called when the tool transitions from SUSPENDED to ACTIVE.
         Resume processing from suspended state.
-
+        
         Returns:
             True if resumption succeeded, False otherwise
         """
@@ -206,7 +209,7 @@ class Tool(ABC):
     def get_metadata(self) -> Dict[str, Any]:
         """
         Get tool metadata.
-
+        
         Returns:
             Dictionary containing tool metadata including:
                 - name: Tool name
@@ -240,7 +243,7 @@ class Tool(ABC):
 class AnalysisTool(Tool):
     """
     Base class for analysis tools.
-
+    
     Analysis tools observe system state and produce insights without
     modifying system behavior.
     """
@@ -249,10 +252,10 @@ class AnalysisTool(Tool):
     def analyze(self, data: Any) -> Any:
         """
         Analyze input data and produce results.
-
+        
         Args:
             data: Input data to analyze
-
+            
         Returns:
             Analysis results
         """
@@ -262,7 +265,7 @@ class AnalysisTool(Tool):
 class InterceptorTool(Tool):
     """
     Base class for interceptor tools.
-
+    
     Interceptor tools can observe and modify system operations.
     """
 
@@ -270,11 +273,11 @@ class InterceptorTool(Tool):
     def intercept(self, operation: Any, context: Any) -> Any:
         """
         Intercept an operation.
-
+        
         Args:
             operation: The operation to intercept
             context: Execution context
-
+            
         Returns:
             Intercept decision (ALLOW, DENY, MODIFY, etc.)
         """
@@ -284,7 +287,7 @@ class InterceptorTool(Tool):
 class MonitoringTool(Tool):
     """
     Base class for monitoring tools.
-
+    
     Monitoring tools continuously observe system behavior and metrics.
     """
 
@@ -292,7 +295,7 @@ class MonitoringTool(Tool):
     def on_event(self, event: Any) -> None:
         """
         Handle a monitoring event.
-
+        
         Args:
             event: The event to handle
         """
@@ -302,7 +305,7 @@ class MonitoringTool(Tool):
 class SynthesisTool(Tool):
     """
     Base class for synthesis tools.
-
+    
     Synthesis tools generate new artifacts (code, data, tools, etc.)
     from specifications or other inputs.
     """
@@ -311,10 +314,10 @@ class SynthesisTool(Tool):
     def synthesize(self, specification: Any) -> Any:
         """
         Synthesize new artifact from specification.
-
+        
         Args:
             specification: Specification of what to synthesize
-
+            
         Returns:
             Synthesized artifact
         """

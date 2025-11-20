@@ -1,23 +1,20 @@
 """
-Void-State Proprietary Tools: Self-Aware AI Infrastructure
+Void-State Tools System - Complete Package
 
-This package provides a comprehensive toolkit for AI system introspection,
-enabling deep self-awareness and runtime transparency across 5 architectural layers.
+A modular, extensible toolkit for AI system introspection, maintenance,
+education, mutation, and defense.
 
-Version: 1.0.0-mvp-complete
+This package provides the core infrastructure and tools across all phases:
+- Phase 1 (MVP): 3 foundational tools ✅
+- Phase 2 (Growth): 4+ advanced analysis and prediction tools 🚧
+- Phase 3 (Advanced): Tool synthesis and meta-tooling 🚧
 """
 
-__version__ = "1.0.0"
-__author__ = "Void State Team"
+__version__ = "2.0.0-phase2-active"
+__author__ = "Void-State Project"
 __license__ = "Proprietary"
 
-# Layer 0: Integration Substrate
-# Layer 1 & 2: Tools
-from .additional_tools import (
-    EventSignatureClassifier,
-    LocalEntropyMicroscope,
-    PatternPrevalenceQuantifier,
-)
+# Core infrastructure
 from .base import (
     AnalysisTool,
     InterceptorTool,
@@ -30,17 +27,50 @@ from .base import (
     ToolState,
 )
 from .hooks import (
-    ConditionalFilter,
-    FrequencyFilter,
     HookContext,
-    HookFilter,
     HookPoint,
     HookPriority,
     HookRegistry,
     HookTiming,
-    KernelHooks,
-    TimeWindowFilter,
-    VMHooks,
+)
+
+# MVP Tools (Phase 1)
+from .mvp_tools import (
+    EventSignatureClassifier,
+    LocalEntropyMicroscope,
+    PatternPrevalenceQuantifier,
+)
+
+# Phase 2 Tools (Growth)
+from .phase2_tools import (
+    BehavioralAnomalyDetector,
+    BehaviorAnomalyReport,
+    BehaviorProfile,
+    BehaviorTrace,
+    Perturbation,
+    ProphecyDistribution,
+    ProphecyEngine,
+    Severity,
+    ThreatAssessment,
+    ThreatSignature,
+    # Layer 2 Tools
+    ThreatSignatureRecognizer,
+    # Data types
+    ThreatType,
+    # Layer 3 Tools
+    TimelineBranchingEngine,
+    TimelineFork,
+)
+
+# Phase 3 Tools (Advanced - Meta-Tooling)
+from .phase3_tools import (
+    # Data types
+    PrimitiveType,
+    SynthesisResult,
+    ToolPrimitive,
+    ToolSpecification,
+    # Layer 4 Meta-Tools
+    ToolSynthesizer,
 )
 from .registry import (
     ToolLifecycleError,
@@ -50,82 +80,147 @@ from .registry import (
     ToolRegistry,
 )
 
-# Public API surface - what users should import
+# Public API surface
 __all__ = [
     # Version
     "__version__",
-    # Layer 0: Core Infrastructure
+
+    # Core classes
     "Tool",
     "ToolConfig",
     "ToolState",
     "ToolMetrics",
     "ToolHandle",
+
+    # Tool types
     "AnalysisTool",
     "InterceptorTool",
     "MonitoringTool",
     "SynthesisTool",
+
+    # Registry
+    "ToolRegistry",
+    "ToolLifecycleManager",
+
+    # Exceptions
+    "ToolRegistrationError",
+    "ToolNotFoundError",
+    "ToolLifecycleError",
+
+    # Hooks
     "HookPoint",
     "HookContext",
     "HookTiming",
     "HookPriority",
     "HookRegistry",
-    "VMHooks",
-    "KernelHooks",
-    "HookFilter",
-    "FrequencyFilter",
-    "TimeWindowFilter",
-    "ConditionalFilter",
-    "ToolRegistry",
-    "ToolLifecycleManager",
-    "ToolRegistrationError",
-    "ToolNotFoundError",
-    "ToolLifecycleError",
-    # Layer 1 & 2: MVP Tools
+
+    # Phase 1 MVP Tools
     "PatternPrevalenceQuantifier",
     "LocalEntropyMicroscope",
     "EventSignatureClassifier",
+
+    # Phase 2 Growth Tools
+    "ThreatSignatureRecognizer",
+    "BehavioralAnomalyDetector",
+    "TimelineBranchingEngine",
+    "ProphecyEngine",
+
+    # Phase 2 Data Types
+    "ThreatType",
+    "Severity",
+    "ThreatSignature",
+    "ThreatAssessment",
+    "BehaviorTrace",
+    "BehaviorProfile",
+    "BehaviorAnomalyReport",
+    "TimelineFork",
+    "Perturbation",
+    "ProphecyDistribution",
+
+    # Phase 3 Advanced Tools
+    "ToolSynthesizer",
+
+    # Phase 3 Data Types
+    "PrimitiveType",
+    "ToolPrimitive",
+    "ToolSpecification",
+    "SynthesisResult",
 ]
 
 
 def get_version() -> str:
-    """Get the current version of the void-state-tools package."""
+    """Get the version string."""
     return __version__
 
 
-def list_available_tools() -> dict:
-    """
-    List all available tools organized by layer.
+def get_mvp_tools():
+    """Get list of available Phase 1 (MVP) tools."""
+    return [
+        PatternPrevalenceQuantifier,
+        LocalEntropyMicroscope,
+        EventSignatureClassifier,
+    ]
 
-    Returns:
-        Dictionary mapping layer names to lists of tool classes.
-    """
+
+def get_phase2_tools():
+    """Get list of available Phase 2 (Growth) tools."""
+    return [
+        ThreatSignatureRecognizer,
+        BehavioralAnomalyDetector,
+        TimelineBranchingEngine,
+        ProphecyEngine,
+    ]
+
+
+def get_phase3_tools():
+    """Get list of available Phase 3 (Advanced) tools."""
+    return [
+        ToolSynthesizer,
+    ]
+
+
+def get_all_tools():
+    """Get all available tools across all phases."""
+    return get_mvp_tools() + get_phase2_tools() + get_phase3_tools()
+
+
+def get_deployment_status():
+    """Get current deployment status."""
+    # Calculate phase progress dynamically
+    phase1_tools = len(get_mvp_tools())
+    phase1_total = 3
+    phase2_tools = len(get_phase2_tools())
+    phase2_total = 15
+    phase3_tools = len(get_phase3_tools())
+    phase3_total = 24
+    total_planned = phase1_total + phase2_total + phase3_total
+
     return {
-        "Layer 0: Integration Substrate": [
-            "ToolRegistry",
-            "HookRegistry",
-            "ToolLifecycleManager",
-        ],
-        "Layer 1 & 2: Analysis Tools": [
-            "PatternPrevalenceQuantifier",
-            "LocalEntropyMicroscope",
-            "EventSignatureClassifier",
-        ],
-    }
-
-
-def get_system_info() -> dict:
-    """
-    Get system information and status.
-
-    Returns:
-        Dictionary with system version, layer count, and tool count.
-    """
-    tools = list_available_tools()
-    total_tools = sum(len(v) for v in tools.values())
-
-    return {
+        "current_phase": "Phase 3 (Advanced)",
         "version": __version__,
-        "layers": len(tools),
-        "total_tools": total_tools,
-        "status": "mvp-complete",
+        "total_tools": len(get_all_tools()),
+        "total_planned": total_planned,
+        "completion_percentage": f"{int((len(get_all_tools()) / total_planned) * 100)}%",
+        "phase1": {
+            "status": "complete",
+            "progress": f"{int((phase1_tools / phase1_total) * 100)}%",
+            "tools_complete": phase1_tools,
+            "tools_total": phase1_total,
+            "tools": ["PatternPrevalenceQuantifier", "LocalEntropyMicroscope", "EventSignatureClassifier"],
+        },
+        "phase2": {
+            "status": "active",
+            "progress": f"{int((phase2_tools / phase2_total) * 100)}%",
+            "tools_complete": phase2_tools,
+            "tools_total": phase2_total,
+            "tools": ["ThreatSignatureRecognizer", "BehavioralAnomalyDetector", "TimelineBranchingEngine", "ProphecyEngine"],
+        },
+        "phase3": {
+            "status": "active",
+            "progress": f"{int((phase3_tools / phase3_total) * 100)}%",
+            "tools_complete": phase3_tools,
+            "tools_total": phase3_total,
+            "tools": ["ToolSynthesizer (Meta-Tool)"],
+            "note": "ToolSynthesizer can generate remaining tools",
+        },
     }
