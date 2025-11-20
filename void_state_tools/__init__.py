@@ -55,9 +55,11 @@ from .phase2_tools import (
     # Layer 2 Tools
     ThreatSignatureRecognizer,
     BehavioralAnomalyDetector,
+    NoveltyDetector,
     # Layer 3 Tools
     TimelineBranchingEngine,
     ProphecyEngine,
+    ExternalInterferenceDetector,
     # Data types
     ThreatType,
     Severity,
@@ -69,6 +71,8 @@ from .phase2_tools import (
     TimelineFork,
     Perturbation,
     ProphecyDistribution,
+    NoveltyScore,
+    InterferenceReport,
 )
 
 # Phase 3 Tools (Advanced - Meta-Tooling)
@@ -132,8 +136,10 @@ __all__ = [
     # Phase 2 Growth Tools
     "ThreatSignatureRecognizer",
     "BehavioralAnomalyDetector",
+    "NoveltyDetector",
     "TimelineBranchingEngine",
     "ProphecyEngine",
+    "ExternalInterferenceDetector",
 
     # Phase 2 Data Types
     "ThreatType",
@@ -146,6 +152,8 @@ __all__ = [
     "TimelineFork",
     "Perturbation",
     "ProphecyDistribution",
+    "NoveltyScore",
+    "InterferenceReport",
 
     # Phase 3 Advanced Tools
     "ToolSynthesizer",
@@ -185,8 +193,10 @@ def get_phase2_tools():
     return [
         ThreatSignatureRecognizer,
         BehavioralAnomalyDetector,
+        NoveltyDetector,
         TimelineBranchingEngine,
         ProphecyEngine,
+        ExternalInterferenceDetector,
     ]
 
 
@@ -222,10 +232,17 @@ def get_deployment_status():
         },
         "phase2": {
             "status": "active",
-            "progress": "27%",  # 4 of 15 planned tools
-            "tools_complete": 4,
+            "progress": "40%",  # 6 of 15 planned tools
+            "tools_complete": 6,
             "tools_total": 15,
-            "tools": ["ThreatSignatureRecognizer", "BehavioralAnomalyDetector", "TimelineBranchingEngine", "ProphecyEngine"],
+            "tools": [
+                "ThreatSignatureRecognizer",
+                "BehavioralAnomalyDetector",
+                "NoveltyDetector",
+                "TimelineBranchingEngine",
+                "ProphecyEngine",
+                "ExternalInterferenceDetector"
+            ],
         },
         "phase3": {
             "status": "active",
