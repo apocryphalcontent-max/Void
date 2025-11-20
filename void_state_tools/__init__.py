@@ -12,52 +12,48 @@ __author__ = "Void State Team"
 __license__ = "Proprietary"
 
 # Layer 0: Integration Substrate
+# Layer 1 & 2: Tools
+from .additional_tools import (
+    EventSignatureClassifier,
+    LocalEntropyMicroscope,
+    PatternPrevalenceQuantifier,
+)
 from .base import (
-    Tool,
-    ToolConfig,
-    ToolState,
-    ToolMetrics,
-    ToolHandle,
     AnalysisTool,
     InterceptorTool,
     MonitoringTool,
     SynthesisTool,
+    Tool,
+    ToolConfig,
+    ToolHandle,
+    ToolMetrics,
+    ToolState,
 )
-
 from .hooks import (
-    HookPoint,
+    ConditionalFilter,
+    FrequencyFilter,
     HookContext,
-    HookTiming,
+    HookFilter,
+    HookPoint,
     HookPriority,
     HookRegistry,
-    VMHooks,
+    HookTiming,
     KernelHooks,
-    HookFilter,
-    FrequencyFilter,
     TimeWindowFilter,
-    ConditionalFilter,
+    VMHooks,
 )
-
 from .registry import (
-    ToolRegistry,
-    ToolLifecycleManager,
-    ToolRegistrationError,
-    ToolNotFoundError,
     ToolLifecycleError,
-)
-
-# Layer 1 & 2: Tools
-from .additional_tools import (
-    PatternPrevalenceQuantifier,
-    LocalEntropyMicroscope,
-    EventSignatureClassifier,
+    ToolLifecycleManager,
+    ToolNotFoundError,
+    ToolRegistrationError,
+    ToolRegistry,
 )
 
 # Public API surface - what users should import
 __all__ = [
     # Version
     "__version__",
-    
     # Layer 0: Core Infrastructure
     "Tool",
     "ToolConfig",
@@ -84,7 +80,6 @@ __all__ = [
     "ToolRegistrationError",
     "ToolNotFoundError",
     "ToolLifecycleError",
-    
     # Layer 1 & 2: MVP Tools
     "PatternPrevalenceQuantifier",
     "LocalEntropyMicroscope",
@@ -100,7 +95,7 @@ def get_version() -> str:
 def list_available_tools() -> dict:
     """
     List all available tools organized by layer.
-    
+
     Returns:
         Dictionary mapping layer names to lists of tool classes.
     """
@@ -121,13 +116,13 @@ def list_available_tools() -> dict:
 def get_system_info() -> dict:
     """
     Get system information and status.
-    
+
     Returns:
         Dictionary with system version, layer count, and tool count.
     """
     tools = list_available_tools()
     total_tools = sum(len(v) for v in tools.values())
-    
+
     return {
         "version": __version__,
         "layers": len(tools),
