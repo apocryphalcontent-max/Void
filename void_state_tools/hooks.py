@@ -115,7 +115,7 @@ class HookPoint:
         """
         results = []
 
-        for _priority, callback, filter_fn, _ in self._callbacks:
+        for priority, callback, filter_fn, _ in self._callbacks:
             # Check filter
             if filter_fn and not filter_fn(context):
                 continue

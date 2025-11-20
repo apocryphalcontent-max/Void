@@ -231,7 +231,7 @@ class ToolLifecycleManager:
             except Exception as e:
                 handle.update_state(ToolState.ERROR)
                 handle.record_error(str(e))
-                raise ToolLifecycleError(f"Tool {tool_id} attachment failed: {e}") from e
+                raise ToolLifecycleError(f"Tool {tool_id} attachment failed: {e}")
 
     def detach_tool(self, tool_id: str) -> bool:
         """
@@ -267,7 +267,7 @@ class ToolLifecycleManager:
             except Exception as e:
                 handle.update_state(ToolState.ERROR)
                 handle.record_error(str(e))
-                raise ToolLifecycleError(f"Tool {tool_id} detachment failed: {e}") from e
+                raise ToolLifecycleError(f"Tool {tool_id} detachment failed: {e}")
 
     def suspend_tool(self, tool_id: str) -> bool:
         """
@@ -309,7 +309,7 @@ class ToolLifecycleManager:
             except Exception as e:
                 handle.update_state(ToolState.ERROR)
                 handle.record_error(str(e))
-                raise ToolLifecycleError(f"Tool {tool_id} suspension failed: {e}") from e
+                raise ToolLifecycleError(f"Tool {tool_id} suspension failed: {e}")
 
     def resume_tool(self, tool_id: str) -> bool:
         """
@@ -351,7 +351,7 @@ class ToolLifecycleManager:
             except Exception as e:
                 handle.update_state(ToolState.ERROR)
                 handle.record_error(str(e))
-                raise ToolLifecycleError(f"Tool {tool_id} resumption failed: {e}") from e
+                raise ToolLifecycleError(f"Tool {tool_id} resumption failed: {e}")
 
     def force_detach_tool(self, tool_id: str) -> bool:
         """
