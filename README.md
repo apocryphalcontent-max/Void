@@ -44,7 +44,7 @@ Layer 0: Integration Substrate   → VM/Kernel hooks, registry, lifecycle
 
 ## Quick Start
 
-```bash
+```python
 # Install in editable mode
 pip install -e .
 
