@@ -271,7 +271,7 @@ def run_demo():
             cycle_count=i,
             thread_id=threading.get_ident()
         )
-        results = hook_point.execute(ctx)
+        hook_point.execute(ctx)
         clock.advance(0.1)
 
     # Check detached callbacks
