@@ -411,7 +411,7 @@ class LocalEntropyMicroscope(MonitoringTool):
             "is_sink": is_sink,
             "is_stable": is_stable,
             "observation_count": len(states),
-            "unique_states": len({str(s) for s in states}),
+            "unique_states": len(set(str(s) for s in states)),
         }
 
     def _calculate_shannon_entropy(self, states: List[Any]) -> float:
@@ -615,7 +615,7 @@ class EventSignatureClassifier(Tool):
             # Log likelihood: log P(features|class)
             log_likelihood = 0.0
             feature_vocab_size = len(
-                {f for counts in self.feature_counts.values() for f in counts.keys()}
+                set(f for counts in self.feature_counts.values() for f in counts.keys())
             )
 
             for feature in features:
@@ -760,7 +760,7 @@ class EventSignatureClassifier(Tool):
             if self.total_samples > 0
             else {},
             "feature_vocabulary_size": len(
-                {f for counts in self.feature_counts.values() for f in counts.keys()}
+                set(f for counts in self.feature_counts.values() for f in counts.keys())
             ),
         }
 
