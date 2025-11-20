@@ -23,7 +23,6 @@ from void_state_tools import (
 )
 from void_state_tools.clock import DeterministicClock, get_clock
 # Removed unused imports from void_state_tools.resource_governor
-from void_state_tools.layered_tool import LayerPhaseMismatchError
 
 
 class TestClockAbstraction:
