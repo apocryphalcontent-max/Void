@@ -1,14 +1,16 @@
 """
-Void-State Tools System - MVP Package
+Void-State Tools System - Complete Package
 
 A modular, extensible toolkit for AI system introspection, maintenance,
 education, mutation, and defense.
 
-This package provides the core infrastructure and Phase 1 (MVP) tools for
-the Void-State system.
+This package provides the core infrastructure and tools across all phases:
+- Phase 1 (MVP): 3 foundational tools ✅
+- Phase 2 (Growth): 4+ advanced analysis and prediction tools 🚧
+- Phase 3 (Advanced): Tool synthesis and meta-tooling 🚧
 """
 
-__version__ = "1.0.0-mvp-complete"
+__version__ = "2.0.0-phase2-active"
 __author__ = "Void-State Project"
 __license__ = "Proprietary"
 
@@ -48,6 +50,38 @@ from .mvp_tools import (
     EventSignatureClassifier,
 )
 
+# Phase 2 Tools (Growth)
+from .phase2_tools import (
+    # Layer 2 Tools
+    ThreatSignatureRecognizer,
+    BehavioralAnomalyDetector,
+    # Layer 3 Tools
+    TimelineBranchingEngine,
+    ProphecyEngine,
+    # Data types
+    ThreatType,
+    Severity,
+    ThreatSignature,
+    ThreatAssessment,
+    BehaviorTrace,
+    BehaviorProfile,
+    BehaviorAnomalyReport,
+    TimelineFork,
+    Perturbation,
+    ProphecyDistribution,
+)
+
+# Phase 3 Tools (Advanced - Meta-Tooling)
+from .phase3_tools import (
+    # Layer 4 Meta-Tools
+    ToolSynthesizer,
+    # Data types
+    PrimitiveType,
+    ToolPrimitive,
+    ToolSpecification,
+    SynthesisResult,
+)
+
 # Public API surface
 __all__ = [
     # Version
@@ -82,10 +116,37 @@ __all__ = [
     "HookPriority",
     "HookRegistry",
 
-    # MVP Tools
+    # Phase 1 MVP Tools
     "PatternPrevalenceQuantifier",
     "LocalEntropyMicroscope",
     "EventSignatureClassifier",
+
+    # Phase 2 Growth Tools
+    "ThreatSignatureRecognizer",
+    "BehavioralAnomalyDetector",
+    "TimelineBranchingEngine",
+    "ProphecyEngine",
+
+    # Phase 2 Data Types
+    "ThreatType",
+    "Severity",
+    "ThreatSignature",
+    "ThreatAssessment",
+    "BehaviorTrace",
+    "BehaviorProfile",
+    "BehaviorAnomalyReport",
+    "TimelineFork",
+    "Perturbation",
+    "ProphecyDistribution",
+
+    # Phase 3 Advanced Tools
+    "ToolSynthesizer",
+
+    # Phase 3 Data Types
+    "PrimitiveType",
+    "ToolPrimitive",
+    "ToolSpecification",
+    "SynthesisResult",
 ]
 
 
@@ -95,7 +156,7 @@ def get_version() -> str:
 
 
 def get_mvp_tools():
-    """Get list of available MVP tools."""
+    """Get list of available Phase 1 (MVP) tools."""
     return [
         PatternPrevalenceQuantifier,
         LocalEntropyMicroscope,
@@ -103,23 +164,56 @@ def get_mvp_tools():
     ]
 
 
+def get_phase2_tools():
+    """Get list of available Phase 2 (Growth) tools."""
+    return [
+        ThreatSignatureRecognizer,
+        BehavioralAnomalyDetector,
+        TimelineBranchingEngine,
+        ProphecyEngine,
+    ]
+
+
+def get_phase3_tools():
+    """Get list of available Phase 3 (Advanced) tools."""
+    return [
+        ToolSynthesizer,
+    ]
+
+
+def get_all_tools():
+    """Get all available tools across all phases."""
+    return get_mvp_tools() + get_phase2_tools() + get_phase3_tools()
+
+
 def get_deployment_status():
     """Get current deployment status."""
     return {
-        "current_phase": "Phase 1 (MVP)",
+        "current_phase": "Phase 3 (Advanced)",
         "version": __version__,
+        "total_tools": len(get_all_tools()),
+        "total_planned": 47,
+        "completion_percentage": f"{int((len(get_all_tools()) / 47) * 100)}%",
         "phase1": {
             "status": "complete",
             "progress": "100%",
             "tools_complete": 3,
             "tools_total": 3,
+            "tools": ["PatternPrevalenceQuantifier", "LocalEntropyMicroscope", "EventSignatureClassifier"],
         },
         "phase2": {
-            "status": "planned",
-            "progress": "0%",
+            "status": "active",
+            "progress": "27%",  # 4 of 15 planned tools
+            "tools_complete": 4,
+            "tools_total": 15,
+            "tools": ["ThreatSignatureRecognizer", "BehavioralAnomalyDetector", "TimelineBranchingEngine", "ProphecyEngine"],
         },
         "phase3": {
-            "status": "planned",
-            "progress": "0%",
+            "status": "active",
+            "progress": "4%",  # 1 of 24 planned tools
+            "tools_complete": 1,
+            "tools_total": 24,
+            "tools": ["ToolSynthesizer (Meta-Tool)"],
+            "note": "ToolSynthesizer can generate remaining tools",
         },
     }
