@@ -377,7 +377,7 @@ class ResourceGovernor:
                 # TODO: Per-tool metric attribution requires instrumentation
                 try:
                     usage = ResourceUsage(
-                        timestamp=time.time(),
+                        timestamp=self._clock.now(),
                         cpu_percent=self._process.cpu_percent(interval=0.1),
                         memory_mb=self._process.memory_info().rss / 1024 / 1024,
                         io_ops_per_sec=0.0,  # TODO: Implement I/O tracking
