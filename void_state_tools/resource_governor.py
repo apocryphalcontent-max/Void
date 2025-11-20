@@ -15,6 +15,7 @@ from collections import deque
 
 if TYPE_CHECKING:
     from .base import ToolConfig
+    from .clock import Clock
 
 try:
     import psutil
