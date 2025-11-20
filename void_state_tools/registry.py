@@ -6,9 +6,15 @@ This module provides the central registry for tools and manages their lifecycle.
 
 from typing import Dict, List, Optional, Set, Callable
 import threading
-import time
 
 from .base import Tool, ToolConfig, ToolHandle, ToolState, ToolMetrics
+from .clock import Clock, get_clock
+from .resource_governor import (
+    ResourceGovernor,
+    QuotaPolicy,
+    EnforcementAction,
+    ViolationRecord
+)
 
 
 class ToolRegistrationError(Exception):
@@ -34,12 +40,36 @@ class ToolRegistry:
     and coordinates tool interactions.
     """
     
-    def __init__(self):
-        """Initialize the tool registry"""
+    def __init__(
+        self,
+        enable_resource_governor: bool = True,
+        quota_policy: Optional[QuotaPolicy] = None,
+        clock: Optional[Clock] = None
+    ):
+        """
+        Initialize the tool registry.
+
+        Args:
+            enable_resource_governor: Enable automatic resource monitoring and enforcement
+            quota_policy: Custom quota policy (uses default if None)
+            clock: Optional clock instance for time tracking
+        """
         self._tools: Dict[str, ToolHandle] = {}
         self._tools_by_category: Dict[str, Set[str]] = {}
         self._lock = threading.RLock()
-        self._lifecycle_manager = ToolLifecycleManager(self)
+        self._clock = clock or get_clock()
+
+        # Create resource governor
+        self._enable_resource_governor = enable_resource_governor
+        if enable_resource_governor:
+            policy = quota_policy or QuotaPolicy()
+            policy.violation_callback = self._handle_resource_violation
+            self._resource_governor = ResourceGovernor(policy)
+            self._resource_governor.start_monitoring(interval=1.0)
+        else:
+            self._resource_governor = None
+
+        self._lifecycle_manager = ToolLifecycleManager(self, clock=self._clock)
     
     def register_tool(self, tool: Tool, config: Optional[ToolConfig] = None) -> ToolHandle:
         """
@@ -64,8 +94,8 @@ class ToolRegistry:
             if tool_id in self._tools:
                 raise ToolRegistrationError(f"Tool {tool_id} already registered")
             
-            # Create handle
-            handle = ToolHandle(tool_id, tool)
+            # Create handle (with clock injection)
+            handle = ToolHandle(tool_id, tool, clock=self._clock)
             tool._set_handle(handle)
             
             # Register
@@ -76,7 +106,11 @@ class ToolRegistry:
             if category not in self._tools_by_category:
                 self._tools_by_category[category] = set()
             self._tools_by_category[category].add(tool_id)
-            
+
+            # Register with resource governor
+            if self._resource_governor:
+                self._resource_governor.register_tool(tool_id, cfg)
+
             return handle
     
     def unregister_tool(self, tool_id: str) -> None:
@@ -105,6 +139,10 @@ class ToolRegistry:
             # Unregister from category
             for category_tools in self._tools_by_category.values():
                 category_tools.discard(tool_id)
+
+            # Unregister from resource governor
+            if self._resource_governor:
+                self._resource_governor.unregister_tool(tool_id)
     
     def get_tool(self, tool_id: str) -> Optional[ToolHandle]:
         """
@@ -165,6 +203,65 @@ class ToolRegistry:
         """Get lifecycle manager"""
         return self._lifecycle_manager
 
+    @property
+    def resource_governor(self) -> Optional[ResourceGovernor]:
+        """Get resource governor if enabled"""
+        return self._resource_governor
+
+    def _handle_resource_violation(self, violation: ViolationRecord):
+        """
+        Handle resource quota violation.
+
+        Automatically takes enforcement action based on policy.
+
+        Args:
+            violation: Violation record with details
+        """
+        tool_id = violation.tool_id
+        action = violation.action_taken
+
+        if action == EnforcementAction.SUSPEND:
+            try:
+                self._lifecycle_manager.suspend_tool(tool_id)
+                print(
+                    f"⚠️  ResourceGovernor: Suspended tool {tool_id} - "
+                    f"{violation.violation_type.value} "
+                    f"(actual: {violation.actual_value}, quota: {violation.quota_value})"
+                )
+            except Exception as e:
+                print(f"Failed to suspend tool {tool_id}: {e}")
+
+        elif action == EnforcementAction.TERMINATE:
+            try:
+                self._lifecycle_manager.force_detach_tool(tool_id)
+                print(
+                    f"🛑 ResourceGovernor: Terminated tool {tool_id} - "
+                    f"repeated {violation.violation_type.value} violations"
+                )
+            except Exception as e:
+                print(f"Failed to terminate tool {tool_id}: {e}")
+
+        elif action == EnforcementAction.WARN:
+            print(
+                f"⚠️  ResourceGovernor: Warning for tool {tool_id} - "
+                f"{violation.violation_type.value} "
+                f"(actual: {violation.actual_value}, quota: {violation.quota_value})"
+            )
+
+    def shutdown(self):
+        """Shutdown the registry and all resources."""
+        # Stop resource governor
+        if self._resource_governor:
+            self._resource_governor.stop_monitoring()
+
+        # Detach all tools
+        with self._lock:
+            for tool_id in list(self._tools.keys()):
+                try:
+                    self._lifecycle_manager.detach_tool(tool_id)
+                except Exception:
+                    pass  # Best effort
+
 
 class ToolLifecycleManager:
     """
@@ -173,15 +270,17 @@ class ToolLifecycleManager:
     Handles state transitions, initialization, shutdown, suspension, and resumption.
     """
     
-    def __init__(self, registry: ToolRegistry):
+    def __init__(self, registry: ToolRegistry, clock: Optional[Clock] = None):
         """
         Initialize lifecycle manager.
-        
+
         Args:
             registry: Tool registry
+            clock: Optional clock instance for time tracking
         """
         self._registry = registry
         self._lock = threading.RLock()
+        self._clock = clock or get_clock()
     
     def attach_tool(self, tool_id: str) -> bool:
         """

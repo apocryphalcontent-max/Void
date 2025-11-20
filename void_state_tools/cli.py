@@ -13,6 +13,9 @@ from typing import Optional
 from . import __version__, get_deployment_status, get_mvp_tools
 from .base import ToolConfig
 from .registry import ToolRegistry
+from .clock import DeterministicClock, get_clock
+from .resource_governor import QuotaPolicy
+from .hooks import HookPoint, HookContext, HookTiming
 
 
 def serve_metrics(host: str = "0.0.0.0", port: int = 8000):
@@ -120,27 +123,36 @@ def list_tools():
 
 
 def run_demo():
-    """Run a simple demo of the MVP tools."""
+    """Run a comprehensive demo of the MVP tools with advanced features."""
     from .mvp_tools import (
         PatternPrevalenceQuantifier,
         LocalEntropyMicroscope,
         EventSignatureClassifier
     )
-    import time
 
     print("Void-State Tools Demo")
     print("=" * 60)
 
-    # Create registry
-    registry = ToolRegistry()
-    print("\nCreated ToolRegistry")
+    # Create deterministic clock for reproducible behavior
+    clock = DeterministicClock(start_time=1000.0)
+    print("\n✓ Using DeterministicClock for reproducible behavior")
+
+    # Create registry with resource governor enabled
+    registry = ToolRegistry(enable_resource_governor=True, clock=clock)
+    print("✓ Created ToolRegistry with ResourceGovernor enabled")
 
     # Test PatternPrevalenceQuantifier
     print("\n1. Pattern Prevalence Quantifier")
     print("-" * 40)
 
     config = ToolConfig(tool_name="pattern_quantifier")
-    ppq = PatternPrevalenceQuantifier(config)
+    ppq = PatternPrevalenceQuantifier(config, clock=clock)
+
+    # Show LayeredTool architectural metadata
+    arch_meta = ppq.get_architectural_metadata()
+    print(f"  Layer: {arch_meta['layer']} ({arch_meta['layer_name']})")
+    print(f"  Phase: {arch_meta['phase']} ({arch_meta['phase_name']})")
+
     handle = registry.register_tool(ppq)
     registry.lifecycle_manager.attach_tool(handle.tool_id)
 
@@ -154,10 +166,11 @@ def run_demo():
     ]
 
     for pattern, context in patterns:
+        clock.advance(0.5)  # Advance by 500ms between observations
         result = ppq.analyze({
             "pattern": pattern,
             "context": context,
-            "timestamp": time.time()
+            "timestamp": clock.now()
         })
 
     top_patterns = ppq.get_top_patterns(3)
@@ -170,7 +183,13 @@ def run_demo():
     print("-" * 40)
 
     config = ToolConfig(tool_name="entropy_microscope")
-    lem = LocalEntropyMicroscope(config)
+    lem = LocalEntropyMicroscope(config, clock=clock)
+
+    # Show LayeredTool architectural metadata
+    arch_meta = lem.get_architectural_metadata()
+    print(f"  Layer: {arch_meta['layer']} ({arch_meta['layer_name']})")
+    print(f"  Phase: {arch_meta['phase']} ({arch_meta['phase_name']})")
+
     handle = registry.register_tool(lem)
     registry.lifecycle_manager.attach_tool(handle.tool_id)
 
@@ -192,7 +211,13 @@ def run_demo():
     print("-" * 40)
 
     config = ToolConfig(tool_name="event_classifier")
-    esc = EventSignatureClassifier(config)
+    esc = EventSignatureClassifier(config, clock=clock)
+
+    # Show LayeredTool architectural metadata
+    arch_meta = esc.get_architectural_metadata()
+    print(f"  Layer: {arch_meta['layer']} ({arch_meta['layer_name']})")
+    print(f"  Phase: {arch_meta['phase']} ({arch_meta['phase_name']})")
+
     handle = registry.register_tool(esc)
     registry.lifecycle_manager.attach_tool(handle.tool_id)
 
@@ -212,6 +237,62 @@ def run_demo():
     print(f"\nClassification stats:")
     print(f"  Total: {stats['total']}")
     print(f"  By class: {stats['by_class']}")
+
+    # Demonstrate hook overhead enforcement
+    print("\n4. Hook Overhead Enforcement")
+    print("-" * 40)
+
+    hook_point = HookPoint(
+        name="test_hook",
+        timing=HookTiming.BEFORE,
+        overhead_budget_ns=1_000_000,  # 1ms budget
+        violation_threshold=3,  # Detach after 3 strikes
+        clock=clock
+    )
+
+    # Add a slow callback that will violate overhead budget
+    def slow_callback(ctx):
+        clock.advance(0.002)  # 2ms (exceeds 1ms budget)
+        return "slow"
+
+    # Add a fast callback
+    def fast_callback(ctx):
+        clock.advance(0.0001)  # 0.1ms (within budget)
+        return "fast"
+
+    hook_point.register(slow_callback, priority=10)
+    hook_point.register(fast_callback, priority=5)
+
+    # Execute hook multiple times to trigger detachment
+    import threading
+    for i in range(5):
+        ctx = HookContext(
+            timestamp=clock.now(),
+            cycle_count=i,
+            thread_id=threading.get_ident()
+        )
+        results = hook_point.execute(ctx)
+        clock.advance(0.1)
+
+    # Check detached callbacks
+    callback_stats = hook_point.get_callback_statistics()
+    detached = [s for s in callback_stats if not s['enabled']]
+    print(f"  Detached callbacks: {len(detached)}")
+    if detached:
+        for stat in detached:
+            print(f"    - Callback {stat['callback_id']}: {stat['detachment_reason']}")
+    print(f"  ✓ Automatic enforcement working!")
+
+    # Demonstrate resource governor statistics
+    print("\n5. Resource Governor Statistics")
+    print("-" * 40)
+
+    if registry._resource_governor:
+        stats = registry._resource_governor.get_statistics()
+        print(f"  Active tools: {stats['active_tools']}")
+        print(f"  Total violations: {stats['total_violations']}")
+        print(f"  Monitoring active: {stats['monitoring_active']}")
+        print(f"  ✓ Resource governor operational!")
 
     print("\n✅ Demo complete!")
 

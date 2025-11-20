@@ -6,10 +6,12 @@ This module defines the core abstractions that all tools must implement.
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 from dataclasses import dataclass, field
-import time
 import uuid
+
+if TYPE_CHECKING:
+    from .clock import Clock
 
 
 class ToolState(Enum):
@@ -79,13 +81,17 @@ class ToolMetrics:
 
 class ToolHandle:
     """Handle for managing a tool instance"""
-    
-    def __init__(self, tool_id: str, tool: 'Tool'):
+
+    def __init__(self, tool_id: str, tool: 'Tool', clock: Optional['Clock'] = None):
         self.tool_id = tool_id
         self._tool = tool
         self._state = ToolState.DORMANT
         self._metrics = ToolMetrics()
-        self._start_time = time.time()
+
+        # Delay import to avoid circular dependency
+        from .clock import get_clock
+        self._clock = clock or get_clock()
+        self._start_time = self._clock.now()
     
     @property
     def state(self) -> ToolState:
@@ -95,7 +101,7 @@ class ToolHandle:
     @property
     def metrics(self) -> ToolMetrics:
         """Get tool metrics"""
-        self._metrics.total_runtime_seconds = time.time() - self._start_time
+        self._metrics.total_runtime_seconds = self._clock.now() - self._start_time
         return self._metrics
     
     def update_state(self, new_state: ToolState) -> None:
@@ -124,7 +130,7 @@ class ToolHandle:
         """Record an error"""
         self._metrics.error_count += 1
         self._metrics.last_error = error
-        self._metrics.last_error_time = time.time()
+        self._metrics.last_error_time = self._clock.now()
 
 
 class Tool(ABC):

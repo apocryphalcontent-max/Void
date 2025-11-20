@@ -8,9 +8,13 @@ quotas are violated.
 
 import time
 import threading
-from typing import Dict, Optional, Callable, List
+from typing import Dict, Optional, Callable, List, Any, TYPE_CHECKING
 from dataclasses import dataclass, field
 from enum import Enum
+from collections import deque
+
+if TYPE_CHECKING:
+    from .base import ToolConfig
 
 try:
     import psutil
@@ -97,10 +101,10 @@ class ResourceGovernor:
         self.policy = policy or QuotaPolicy()
 
         # Tool resource tracking
-        self._tool_usage: Dict[str, List[ResourceUsage]] = {}
+        self._tool_usage: Dict[str, deque] = {}  # deque of ResourceUsage
         self._tool_quotas: Dict[str, 'ToolConfig'] = {}
         self._violation_counts: Dict[str, Dict[ResourceViolation, int]] = {}
-        self._violation_history: List[ViolationRecord] = []
+        self._violation_history: deque = deque(maxlen=1000)  # Bounded history
 
         # Monitoring
         self._monitoring = False
@@ -148,7 +152,7 @@ class ResourceGovernor:
         """
         with self._lock:
             self._tool_quotas[tool_id] = config
-            self._tool_usage[tool_id] = []
+            self._tool_usage[tool_id] = deque(maxlen=100)  # Keep last 100 samples
             self._violation_counts[tool_id] = {v: 0 for v in ResourceViolation}
 
     def unregister_tool(self, tool_id: str):
@@ -176,10 +180,7 @@ class ResourceGovernor:
                 return
 
             self._tool_usage[tool_id].append(usage)
-
-            # Keep only recent history (last 100 samples)
-            if len(self._tool_usage[tool_id]) > 100:
-                self._tool_usage[tool_id] = self._tool_usage[tool_id][-100:]
+            # deque automatically maintains maxlen, no manual truncation needed
 
             # Check for violations
             self._check_quotas(tool_id, usage)
@@ -318,10 +319,7 @@ class ResourceGovernor:
         )
 
         self._violation_history.append(record)
-
-        # Keep history bounded
-        if len(self._violation_history) > 1000:
-            self._violation_history = self._violation_history[-1000:]
+        # deque automatically maintains maxlen, no manual truncation needed
 
         # Invoke callback
         if self.policy.violation_callback:

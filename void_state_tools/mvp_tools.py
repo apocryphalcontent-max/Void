@@ -10,28 +10,31 @@ This module implements the remaining Phase 1 tools:
 from typing import Dict, Any, Set, List, Optional
 from collections import defaultdict, Counter
 import math
-import time
 
-from .base import (
-    Tool, ToolConfig, AnalysisTool, MonitoringTool
-)
+from .base import Tool, ToolConfig, AnalysisTool, MonitoringTool
+from .clock import Clock, get_clock
+from .layered_tool import LayeredTool
 
 
-class PatternPrevalenceQuantifier(AnalysisTool):
+class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
     """
     Pattern Prevalence Quantifier - MVP Implementation
-    
+
     Measures frequency and ubiquity of patterns across the system state corpus.
     Tracks pattern occurrences, contexts, and temporal stability.
-    
+
     Phase: 1 (MVP)
     Layer: 2 (Analysis & Intelligence)
     Priority: P1 (High)
     Status: COMPLETE
     """
-    
-    def __init__(self, config: ToolConfig):
+
+    _layer = 2
+    _phase = 1
+
+    def __init__(self, config: ToolConfig, clock: Optional[Clock] = None):
         super().__init__(config)
+        self._clock = clock or get_clock()
         self.pattern_counts: Counter = Counter()
         self.pattern_contexts: Dict[str, Set[str]] = defaultdict(set)
         self.pattern_first_seen: Dict[str, float] = {}
@@ -106,7 +109,7 @@ class PatternPrevalenceQuantifier(AnalysisTool):
         
         pattern = data.get("pattern", "")
         context = data.get("context", "unknown")
-        timestamp = data.get("timestamp", time.time())
+        timestamp = data.get("timestamp", self._clock.now())
         
         if not pattern:
             return {"error": "No pattern provided"}
@@ -229,27 +232,32 @@ class PatternPrevalenceQuantifier(AnalysisTool):
         }
 
 
-class LocalEntropyMicroscope(MonitoringTool):
+class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
     """
     Local Entropy Microscope - MVP Implementation
-    
+
     Measures entropy at microscopic scales across system regions.
     Identifies entropy gradients, sources, and sinks.
-    
+
     Phase: 1 (MVP)
     Layer: 2 (Analysis & Intelligence)
     Priority: P1 (High)
     Status: COMPLETE
     """
-    
-    def __init__(self, config: ToolConfig):
+
+    _layer = 2
+    _phase = 1
+
+    def __init__(self, config: ToolConfig, clock: Optional[Clock] = None):
         """
         Initialize the Local Entropy Microscope.
 
         Args:
             config: Tool configuration including resource quotas and parameters.
+            clock: Optional clock instance for time tracking (defaults to system clock).
         """
         super().__init__(config)
+        self._clock = clock or get_clock()
         self.region_states: Dict[str, List[Any]] = defaultdict(list)
         self.max_history = config.parameters.get('max_history', 1000)  # Keep last N states per region
 
@@ -469,7 +477,7 @@ class LocalEntropyMicroscope(MonitoringTool):
         }
 
 
-class EventSignatureClassifier(Tool):
+class EventSignatureClassifier(LayeredTool, Tool):
     """
     Event Signature Classifier - MVP Implementation with Naive Bayes
 
@@ -487,15 +495,20 @@ class EventSignatureClassifier(Tool):
     - Provides confidence scores based on posterior probabilities
     """
 
-    def __init__(self, config: ToolConfig):
+    _layer = 1
+    _phase = 1
+
+    def __init__(self, config: ToolConfig, clock: Optional[Clock] = None):
         """
         Initialize the Event Signature Classifier.
 
         Args:
             config: Tool configuration including parameters:
                 - smoothing_alpha: Laplace smoothing parameter (default: 1.0)
+            clock: Optional clock instance for time tracking (defaults to system clock).
         """
         super().__init__(config)
+        self._clock = clock or get_clock()
 
         # Known event classes
         self.event_classes: Set[str] = {
@@ -693,7 +706,7 @@ class EventSignatureClassifier(Tool):
             "confidence": classification[1],
             "probabilities": probabilities,
             "features": features,
-            "timestamp": time.time()
+            "timestamp": self._clock.now()
         }
 
         # Store in history
@@ -739,7 +752,7 @@ class EventSignatureClassifier(Tool):
             "confidence": confidence,
             "probabilities": {classification: confidence},
             "features": self._extract_features(event),
-            "timestamp": time.time()
+            "timestamp": self._clock.now()
         }
 
         self.classification_history.append(result)
