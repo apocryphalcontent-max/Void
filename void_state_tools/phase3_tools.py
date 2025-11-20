@@ -397,7 +397,7 @@ class {spec.tool_name}(LayeredTool, {base_class}):
         code_lines = []
         indent_str = " " * indent
 
-        for primitive_id, config in composition_plan:
+        for primitive_id, prim_config in composition_plan:
             if primitive_id not in self._primitives:
                 continue
 
@@ -409,19 +409,22 @@ class {spec.tool_name}(LayeredTool, {base_class}):
 
             # Simple invocation (would be more sophisticated in production)
             if primitive_id == "pattern_match":
-                code_lines.append(f"{indent_str}results['matched'] = data.get('pattern') == config.get('expected_pattern')")
+                expected = prim_config.get('expected_pattern', 'unknown')
+                code_lines.append(f"{indent_str}results['matched'] = data.get('pattern') == '{expected}'")
             elif primitive_id == "calculate_mean":
                 code_lines.append(f"{indent_str}values = data.get('values', [])")
                 code_lines.append(f"{indent_str}results['mean'] = sum(values) / len(values) if values else 0.0")
             elif primitive_id == "classify_threshold":
+                threshold = prim_config.get('threshold', 0.5)
                 code_lines.append(f"{indent_str}value = data.get('value', 0.0)")
-                code_lines.append(f"{indent_str}threshold = config.get('threshold', 0.5)")
+                code_lines.append(f"{indent_str}threshold = {threshold}")
                 code_lines.append(f"{indent_str}results['classification'] = 'high' if value >= threshold else 'low'")
             elif primitive_id == "detect_outlier":
+                sigma = prim_config.get('sigma', 3.0)
                 code_lines.append(f"{indent_str}value = data.get('value', 0.0)")
                 code_lines.append(f"{indent_str}mean = data.get('mean', 0.0)")
                 code_lines.append(f"{indent_str}std_dev = data.get('std_dev', 1.0)")
-                code_lines.append(f"{indent_str}results['is_outlier'] = abs(value - mean) > (3.0 * std_dev)")
+                code_lines.append(f"{indent_str}results['is_outlier'] = abs(value - mean) > ({sigma} * std_dev)")
 
         return "\n".join(code_lines) if code_lines else f"{indent_str}pass"
 
