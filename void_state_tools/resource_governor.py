@@ -389,6 +389,7 @@ class ResourceGovernor:
                     self.record_usage(tool_id, usage)
 
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    # Process may have terminated or access denied; skip recording usage for this tool.
                     pass
 
     def get_statistics(self) -> Dict[str, Any]:
