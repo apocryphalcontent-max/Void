@@ -1,0 +1,240 @@
+name: Void-State CI
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov
+    
+    - name: Run validate_hardening.py
+      run: |
+        python validate_hardening.py
+    
+    - name: Run integration tests
+      run: |
+        pytest tests/test_integration.py -v --cov=void_state_tools --cov-report=xml --cov-report=term
+    
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.12'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-void-state
+
+  lint:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff mypy
+        pip install -e .
+    
+    - name: Run ruff (linter)
+      run: |
+        ruff check void_state_tools/ --output-format=github
+    
+    - name: Run ruff (formatter check)
+      run: |
+        ruff format --check void_state_tools/
+    
+    - name: Run mypy (type checker)
+      run: |
+        mypy void_state_tools/ --ignore-missing-imports --no-strict-optional
+      continue-on-error: true  # Don't fail on type errors for now
+
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-benchmark
+    
+    - name: Run benchmarks
+      run: |
+        python -c "
+        import time
+        from void_state_tools import (
+            ToolRegistry,
+            ToolConfig,
+            PatternPrevalenceQuantifier,
+            LocalEntropyMicroscope,
+            EventSignatureClassifier,
+        )
+        
+        print('Running performance benchmarks...')
+        print('='*60)
+        
+        # Benchmark PatternPrevalenceQuantifier
+        config = ToolConfig(tool_name='benchmark')
+        pq = PatternPrevalenceQuantifier(config)
+        pq.initialize()
+        
+        start = time.perf_counter()
+        for i in range(1000):
+            pq.analyze({'pattern': f'pattern_{i % 10}', 'context': 'bench'})
+        elapsed = time.perf_counter() - start
+        
+        print(f'PatternPrevalenceQuantifier: {1000/elapsed:.1f} ops/sec')
+        
+        # Benchmark LocalEntropyMicroscope
+        lem = LocalEntropyMicroscope(config)
+        lem.initialize()
+        
+        start = time.perf_counter()
+        for i in range(1000):
+            lem.observe_region(f'region_{i % 5}', f'state_{i}')
+        elapsed = time.perf_counter() - start
+        
+        print(f'LocalEntropyMicroscope: {1000/elapsed:.1f} ops/sec')
+        
+        # Benchmark EventSignatureClassifier
+        esc = EventSignatureClassifier(config)
+        esc.initialize()
+        
+        # Train it first
+        for i in range(10):
+            esc.train({'type': 'test', 'size': i}, 'test')
+        
+        start = time.perf_counter()
+        for i in range(1000):
+            esc.classify_event({'type': 'test', 'size': i})
+        elapsed = time.perf_counter() - start
+        
+        print(f'EventSignatureClassifier: {1000/elapsed:.1f} ops/sec')
+        print('='*60)
+        print('✓ Benchmarks complete')
+        "
+
+  package:
+    name: Build and Check Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Install build tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: |
+        python -m build
+    
+    - name: Check package
+      run: |
+        twine check dist/*
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install safety bandit
+    
+    - name: Run safety check
+      run: |
+        safety check --json || true
+      continue-on-error: true
+    
+    - name: Run bandit security scan
+      run: |
+        bandit -r void_state_tools/ -f json -o bandit-report.json || true
+      continue-on-error: true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
