@@ -6,12 +6,13 @@ Tests:
 """
 
 import pytest
+
 from void_state_tools import (
-    ToolConfig,
-    ToolSynthesizer,
     PrimitiveType,
+    ToolConfig,
     ToolPrimitive,
     ToolSpecification,
+    ToolSynthesizer,
 )
 from void_state_tools.clock import DeterministicClock
 

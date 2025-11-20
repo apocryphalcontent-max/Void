@@ -15,19 +15,18 @@ Phase: 2 (Growth)
 Target Overhead: < 5%
 """
 
-import time
-import threading
-from typing import Dict, Any, List, Set, Tuple, Optional, Callable
-from dataclasses import dataclass, field
-from collections import defaultdict, deque
-from enum import Enum
 import hashlib
 import json
+import threading
+import time
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
-from .base import Tool, ToolConfig, AnalysisTool, MonitoringTool
+from .base import AnalysisTool, MonitoringTool, Tool, ToolConfig
+from .clock import Clock, SystemClock, get_clock
 from .layered_tool import LayeredTool
-from .clock import Clock, get_clock, SystemClock
-
 
 # ============================================================================
 # LAYER 2: ANALYSIS & INTELLIGENCE

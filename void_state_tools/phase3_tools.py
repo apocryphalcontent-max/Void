@@ -12,14 +12,13 @@ Target Overhead: < 1% (runs offline)
 import ast
 import inspect
 import textwrap
-from typing import Dict, Any, List, Set, Tuple, Optional, Callable, Type
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type
 
-from .base import Tool, ToolConfig, AnalysisTool, MonitoringTool, SynthesisTool
-from .layered_tool import LayeredTool
+from .base import AnalysisTool, MonitoringTool, SynthesisTool, Tool, ToolConfig
 from .clock import Clock, get_clock
-
+from .layered_tool import LayeredTool
 
 # ============================================================================
 # LAYER 4: META & EVOLUTION
@@ -286,7 +285,7 @@ class ToolSynthesizer(LayeredTool, SynthesisTool):
         # Validate tool_name is a valid Python identifier
         if not spec.tool_name.isidentifier():
             errors.append(f"Invalid tool name: {spec.tool_name} (must be a valid Python identifier)")
-        
+
         # Validate description doesn't contain code injection patterns
         if '"""' in spec.description or "'''" in spec.description:
             errors.append("Description contains triple quotes which could break code generation")
@@ -314,7 +313,7 @@ class ToolSynthesizer(LayeredTool, SynthesisTool):
 
     def _generate_tool_code(self, spec: ToolSpecification) -> str:
         """Generate Python code for the tool."""
-        
+
         # Sanitize description for safe inclusion in docstring
         safe_description = spec.description.replace('"""', "'''").replace('\n', ' ')
 
@@ -448,7 +447,7 @@ class {spec.tool_name}(LayeredTool, {base_class}):
             tree = ast.parse(code)
         except SyntaxError as e:
             raise ValueError(f"Generated code has syntax errors: {e}")
-        
+
         # Check for dangerous operations in the generated code
         for node in ast.walk(tree):
             # Disallow dangerous built-ins being called explicitly
@@ -461,11 +460,11 @@ class {spec.tool_name}(LayeredTool, {base_class}):
                 if isinstance(node.value, ast.Name):
                     if node.value.id in ['os', 'sys', 'subprocess']:
                         raise ValueError(f"Access to dangerous module '{node.value.id}' not allowed")
-        
+
         # Validate tool_name is a valid identifier
         if not tool_name.isidentifier():
             raise ValueError(f"Invalid tool name: {tool_name}")
-        
+
         # Create namespace for execution
         # We provide the necessary imports but rely on AST validation to prevent abuse
         namespace = {

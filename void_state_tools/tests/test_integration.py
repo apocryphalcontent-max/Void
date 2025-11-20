@@ -5,19 +5,20 @@ Tests the complete lifecycle, hook integration, and overhead enforcement
 for all Phase 1 MVP tools.
 """
 
-import pytest
 import time
 
+import pytest
+
 from void_state_tools import (
-    ToolRegistry,
-    ToolConfig,
-    ToolState,
-    PatternPrevalenceQuantifier,
-    LocalEntropyMicroscope,
     EventSignatureClassifier,
-    HookPoint,
     HookContext,
+    HookPoint,
     HookTiming,
+    LocalEntropyMicroscope,
+    PatternPrevalenceQuantifier,
+    ToolConfig,
+    ToolRegistry,
+    ToolState,
 )
 
 

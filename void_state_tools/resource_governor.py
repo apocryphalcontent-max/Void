@@ -6,12 +6,12 @@ and automatic enforcement actions (throttle, suspend, terminate) when
 quotas are violated.
 """
 
-import time
 import threading
-from typing import Dict, Optional, Callable, List, Any, TYPE_CHECKING
+import time
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from collections import deque
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 if TYPE_CHECKING:
     from .base import ToolConfig
@@ -106,7 +106,7 @@ class ResourceGovernor:
 
         # Tool resource tracking
         self._tool_usage: Dict[str, deque] = {}  # deque of ResourceUsage
-        self._tool_quotas: Dict[str, 'ToolConfig'] = {}
+        self._tool_quotas: Dict[str, ToolConfig] = {}
         self._violation_counts: Dict[str, Dict[ResourceViolation, int]] = {}
         self._violation_history: deque = deque(maxlen=1000)  # Bounded history
 
@@ -157,7 +157,7 @@ class ResourceGovernor:
         with self._lock:
             self._tool_quotas[tool_id] = config
             self._tool_usage[tool_id] = deque(maxlen=100)  # Keep last 100 samples
-            self._violation_counts[tool_id] = {v: 0 for v in ResourceViolation}
+            self._violation_counts[tool_id] = dict.fromkeys(ResourceViolation, 0)
 
     def unregister_tool(self, tool_id: str):
         """

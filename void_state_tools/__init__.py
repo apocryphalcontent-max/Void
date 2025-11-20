@@ -16,70 +16,68 @@ __license__ = "Proprietary"
 
 # Core infrastructure
 from .base import (
-    Tool,
-    ToolConfig,
-    ToolState,
-    ToolMetrics,
-    ToolHandle,
     AnalysisTool,
     InterceptorTool,
     MonitoringTool,
     SynthesisTool,
+    Tool,
+    ToolConfig,
+    ToolHandle,
+    ToolMetrics,
+    ToolState,
 )
-
-from .registry import (
-    ToolRegistry,
-    ToolLifecycleManager,
-    ToolRegistrationError,
-    ToolNotFoundError,
-    ToolLifecycleError,
-)
-
 from .hooks import (
-    HookPoint,
     HookContext,
-    HookTiming,
+    HookPoint,
     HookPriority,
     HookRegistry,
+    HookTiming,
 )
 
 # MVP Tools (Phase 1)
 from .mvp_tools import (
-    PatternPrevalenceQuantifier,
-    LocalEntropyMicroscope,
     EventSignatureClassifier,
+    LocalEntropyMicroscope,
+    PatternPrevalenceQuantifier,
 )
 
 # Phase 2 Tools (Growth)
 from .phase2_tools import (
-    # Layer 2 Tools
-    ThreatSignatureRecognizer,
     BehavioralAnomalyDetector,
-    # Layer 3 Tools
-    TimelineBranchingEngine,
-    ProphecyEngine,
-    # Data types
-    ThreatType,
-    Severity,
-    ThreatSignature,
-    ThreatAssessment,
-    BehaviorTrace,
-    BehaviorProfile,
     BehaviorAnomalyReport,
-    TimelineFork,
+    BehaviorProfile,
+    BehaviorTrace,
     Perturbation,
     ProphecyDistribution,
+    ProphecyEngine,
+    Severity,
+    ThreatAssessment,
+    ThreatSignature,
+    # Layer 2 Tools
+    ThreatSignatureRecognizer,
+    # Data types
+    ThreatType,
+    # Layer 3 Tools
+    TimelineBranchingEngine,
+    TimelineFork,
 )
 
 # Phase 3 Tools (Advanced - Meta-Tooling)
 from .phase3_tools import (
-    # Layer 4 Meta-Tools
-    ToolSynthesizer,
     # Data types
     PrimitiveType,
+    SynthesisResult,
     ToolPrimitive,
     ToolSpecification,
-    SynthesisResult,
+    # Layer 4 Meta-Tools
+    ToolSynthesizer,
+)
+from .registry import (
+    ToolLifecycleError,
+    ToolLifecycleManager,
+    ToolNotFoundError,
+    ToolRegistrationError,
+    ToolRegistry,
 )
 
 # Public API surface
@@ -196,7 +194,7 @@ def get_deployment_status():
     phase3_tools = len(get_phase3_tools())
     phase3_total = 24
     total_planned = phase1_total + phase2_total + phase3_total
-    
+
     return {
         "current_phase": "Phase 3 (Advanced)",
         "version": __version__,

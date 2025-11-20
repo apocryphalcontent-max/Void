@@ -9,8 +9,8 @@ Provides a clean abstraction over time.time() with support for:
 
 import time
 from abc import ABC, abstractmethod
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
 
 class Clock(ABC):

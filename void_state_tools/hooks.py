@@ -8,12 +8,12 @@ This module provides sophisticated hook infrastructure with:
 - Thread-safe operation
 """
 
+import threading
 from abc import ABC, abstractmethod
+from collections import defaultdict
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from dataclasses import dataclass, field
-from collections import defaultdict
-import threading
 
 from .clock import Clock, get_clock
 
@@ -197,7 +197,7 @@ class HookPoint:
                     results.append(result)
                     success = True
 
-                except Exception as e:
+                except Exception:
                     # Log error but don't propagate
                     results.append(None)
                     success = False

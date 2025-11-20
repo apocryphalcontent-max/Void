@@ -6,16 +6,16 @@ serving metrics, and running diagnostic tools.
 """
 
 import argparse
-import sys
 import json
+import sys
 from typing import Optional
 
 from . import __version__, get_deployment_status, get_mvp_tools
 from .base import ToolConfig
-from .registry import ToolRegistry
 from .clock import DeterministicClock, get_clock
+from .hooks import HookContext, HookPoint, HookTiming
+from .registry import ToolRegistry
 from .resource_governor import QuotaPolicy
-from .hooks import HookPoint, HookContext, HookTiming
 
 
 def serve_metrics(host: str = "0.0.0.0", port: int = 8000):
@@ -30,7 +30,7 @@ def serve_metrics(host: str = "0.0.0.0", port: int = 8000):
     print("Press Ctrl+C to stop")
 
     try:
-        from http.server import HTTPServer, BaseHTTPRequestHandler
+        from http.server import BaseHTTPRequestHandler, HTTPServer
 
         class MetricsHandler(BaseHTTPRequestHandler):
             def do_GET(self):
@@ -80,20 +80,20 @@ def show_status():
     print(f"Void-State Tools v{__version__}")
     print("=" * 60)
     print(f"\nCurrent Phase: {status['current_phase']}")
-    print(f"\nPhase 1 (MVP):")
+    print("\nPhase 1 (MVP):")
     print(f"  Status: {status['phase1']['status']}")
     print(f"  Progress: {status['phase1']['progress']}")
     print(f"  Tools: {status['phase1']['tools_complete']}/{status['phase1']['tools_total']} complete")
 
-    print(f"\nPhase 2 (Growth):")
+    print("\nPhase 2 (Growth):")
     print(f"  Status: {status['phase2']['status']}")
     print(f"  Progress: {status['phase2']['progress']}")
 
-    print(f"\nPhase 3 (Advanced):")
+    print("\nPhase 3 (Advanced):")
     print(f"  Status: {status['phase3']['status']}")
     print(f"  Progress: {status['phase3']['progress']}")
 
-    print(f"\nAvailable MVP Tools:")
+    print("\nAvailable MVP Tools:")
     for tool_cls in get_mvp_tools():
         config = ToolConfig()
         tool = tool_cls(config)
@@ -124,11 +124,7 @@ def list_tools():
 
 def run_demo():
     """Run a comprehensive demo of the MVP tools with advanced features."""
-    from .mvp_tools import (
-        PatternPrevalenceQuantifier,
-        LocalEntropyMicroscope,
-        EventSignatureClassifier
-    )
+    from .mvp_tools import EventSignatureClassifier, LocalEntropyMicroscope, PatternPrevalenceQuantifier
 
     print("Void-State Tools Demo")
     print("=" * 60)
@@ -174,7 +170,7 @@ def run_demo():
         })
 
     top_patterns = ppq.get_top_patterns(3)
-    print(f"Top patterns:")
+    print("Top patterns:")
     for p in top_patterns:
         print(f"  - {p['pattern']}: {p['frequency_ratio']:.1%} (contexts: {p['context_diversity']})")
 
@@ -202,7 +198,7 @@ def run_demo():
         lem.observe_region(region, state)
 
     field = lem.get_entropy_field()
-    print(f"Entropy field:")
+    print("Entropy field:")
     for region, entropy in field.items():
         print(f"  - {region}: {entropy:.2f} bits")
 
@@ -228,13 +224,13 @@ def run_demo():
         {"type": "error", "exception": "ValueError"},
     ]
 
-    print(f"Classification results:")
+    print("Classification results:")
     for event in events:
         result = esc.classify_event(event)
         print(f"  - {event}: {result['classification']} (confidence: {result['confidence']:.1%})")
 
     stats = esc.get_classification_stats()
-    print(f"\nClassification stats:")
+    print("\nClassification stats:")
     print(f"  Total: {stats['total']}")
     print(f"  By class: {stats['by_class']}")
 
@@ -281,7 +277,7 @@ def run_demo():
     if detached:
         for stat in detached:
             print(f"    - Callback {stat['callback_id']}: {stat['detachment_reason']}")
-    print(f"  ✓ Automatic enforcement working!")
+    print("  ✓ Automatic enforcement working!")
 
     # Demonstrate resource governor statistics
     print("\n5. Resource Governor Statistics")
@@ -292,7 +288,7 @@ def run_demo():
         print(f"  Active tools: {stats['active_tools']}")
         print(f"  Total violations: {stats['total_violations']}")
         print(f"  Monitoring active: {stats['monitoring_active']}")
-        print(f"  ✓ Resource governor operational!")
+        print("  ✓ Resource governor operational!")
 
     print("\n✅ Demo complete!")
 

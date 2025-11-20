@@ -5,8 +5,8 @@ This module provides a mixin that validates tool layer and phase declarations
 at class definition time, ensuring architectural integrity.
 """
 
-from typing import Optional, Dict, Any
 import re
+from typing import Any, Dict, Optional
 
 
 class LayerPhaseMismatchError(Exception):

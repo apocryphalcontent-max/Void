@@ -7,12 +7,12 @@ This module implements the remaining Phase 1 tools:
 - Event Signature Classifier (stub)
 """
 
-from typing import Dict, Any, Set, List, Optional
-from collections import defaultdict, Counter
-import math
 import json
+import math
+from collections import Counter, defaultdict
+from typing import Any, Dict, List, Optional, Set
 
-from .base import Tool, ToolConfig, AnalysisTool, MonitoringTool
+from .base import AnalysisTool, MonitoringTool, Tool, ToolConfig
 from .clock import Clock, get_clock
 from .layered_tool import LayeredTool
 
@@ -41,7 +41,7 @@ class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
         self.pattern_first_seen: Dict[str, float] = {}
         self.pattern_last_seen: Dict[str, float] = {}
         self.total_observations = 0
-    
+
     def initialize(self) -> bool:
         """
         Initialize the quantifier by resetting all pattern tracking state.
@@ -58,7 +58,7 @@ class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
         self.pattern_last_seen.clear()
         self.total_observations = 0
         return True
-    
+
     def shutdown(self) -> bool:
         """
         Clean up resources by clearing all pattern tracking data.
@@ -107,37 +107,37 @@ class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
         """
         if not isinstance(data, dict):
             return {"error": "Data must be a dictionary"}
-        
+
         pattern = data.get("pattern", "")
         context = data.get("context", "unknown")
         timestamp = data.get("timestamp", self._clock.now())
-        
+
         if not pattern:
             return {"error": "No pattern provided"}
-        
+
         # Update counts
         self.pattern_counts[pattern] += 1
         self.pattern_contexts[pattern].add(context)
         self.total_observations += 1
-        
+
         # Update timestamps
         if pattern not in self.pattern_first_seen:
             self.pattern_first_seen[pattern] = timestamp
         self.pattern_last_seen[pattern] = timestamp
-        
+
         # Calculate metrics
         frequency = self.pattern_counts[pattern]
         frequency_ratio = frequency / self.total_observations if self.total_observations > 0 else 0
         context_diversity = len(self.pattern_contexts[pattern])
         age_seconds = timestamp - self.pattern_first_seen[pattern]
-        
+
         # Calculate stability (how consistent the pattern is over time)
         if age_seconds > 0:
             occurrences_per_second = frequency / age_seconds
             stability = min(1.0, occurrences_per_second / 0.1)  # Normalize to 0-1
         else:
             stability = 1.0
-        
+
         return {
             "pattern": pattern,
             "frequency": frequency,
@@ -149,7 +149,7 @@ class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
             "is_common": frequency_ratio > 0.01,  # More than 1% of observations
             "is_rare": frequency_ratio < 0.001,   # Less than 0.1% of observations
         }
-    
+
     def _calculate_percentile(self, frequency: int) -> float:
         """
         Calculate the percentile rank of a given frequency.
@@ -170,7 +170,7 @@ class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
         frequencies = sorted(self.pattern_counts.values())
         position = sum(1 for f in frequencies if f <= frequency)
         return (position / len(frequencies)) * 100
-    
+
     def get_top_patterns(self, n: int = 10) -> List[Dict[str, Any]]:
         """
         Get the N most prevalent patterns ranked by frequency.
@@ -194,7 +194,7 @@ class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
                 "context_diversity": len(self.pattern_contexts[pattern])
             })
         return results
-    
+
     def get_rare_patterns(self, threshold: float = 0.001) -> List[Dict[str, Any]]:
         """
         Get patterns with frequency below a specified threshold.
@@ -218,7 +218,7 @@ class PatternPrevalenceQuantifier(LayeredTool, AnalysisTool):
                     "frequency_ratio": ratio
                 })
         return sorted(results, key=lambda x: x["frequency"])
-    
+
     def get_metadata(self) -> Dict[str, Any]:
         return {
             "name": "Pattern Prevalence Quantifier",
@@ -299,7 +299,7 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
             bool: Always True, indicating successful resumption.
         """
         return True
-    
+
     def on_event(self, event: Any):
         """
         Handle a monitoring event by observing the region state.
@@ -312,7 +312,7 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
         """
         if isinstance(event, dict) and "region" in event and "state" in event:
             self.observe_region(event["region"], event["state"])
-    
+
     def collect_metrics(self) -> Dict[str, float]:
         """
         Collect current entropy metrics
@@ -324,16 +324,16 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
         for region, states in self.region_states.items():
             if states:
                 metrics[f"entropy_{region}"] = self._calculate_shannon_entropy(states)
-        
+
         # Global entropy
         all_states = []
         for states in self.region_states.values():
             all_states.extend(states)
         if all_states:
             metrics["entropy_global"] = self._calculate_shannon_entropy(all_states)
-        
+
         return metrics
-    
+
     def observe_region(self, region: str, state: Any) -> Dict[str, Any]:
         """
         Observe a region's state and calculate entropy
@@ -347,28 +347,28 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
         """
         # Add state to history
         self.region_states[region].append(state)
-        
+
         # Limit history size
         if len(self.region_states[region]) > self.max_history:
             self.region_states[region] = self.region_states[region][-self.max_history:]
-        
+
         states = self.region_states[region]
-        
+
         # Calculate local entropy
         entropy = self._calculate_shannon_entropy(states)
-        
+
         # Calculate gradient (change in entropy)
         gradient = 0.0
         if len(states) >= 2:
             recent_entropy = self._calculate_shannon_entropy(states[-10:])
             older_entropy = self._calculate_shannon_entropy(states[-20:-10] if len(states) >= 20 else states[:-10])
             gradient = recent_entropy - older_entropy
-        
+
         # Classify region
         is_source = gradient > 0.1  # Increasing entropy
         is_sink = gradient < -0.1   # Decreasing entropy
         is_stable = abs(gradient) < 0.05
-        
+
         return {
             "region": region,
             "entropy": entropy,
@@ -379,7 +379,7 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
             "observation_count": len(states),
             "unique_states": len(set(str(s) for s in states))
         }
-    
+
     def _calculate_shannon_entropy(self, states: List[Any]) -> float:
         """
         Calculate Shannon entropy of state distribution.
@@ -424,7 +424,7 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
             entropy -= probability * math.log2(probability)
 
         return entropy
-    
+
     def get_entropy_field(self) -> Dict[str, float]:
         """
         Get entropy values for all observed regions.
@@ -439,7 +439,7 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
             if states:
                 field[region] = self._calculate_shannon_entropy(states)
         return field
-    
+
     def identify_anomalies(self, threshold: float = 2.0) -> List[Dict[str, Any]]:
         """
         Identify regions with abnormal entropy levels.
@@ -478,7 +478,7 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
                 })
 
         return sorted(anomalies, key=lambda x: x["deviation"], reverse=True)
-    
+
     def get_metadata(self) -> Dict[str, Any]:
         return {
             "name": "Local Entropy Microscope",
