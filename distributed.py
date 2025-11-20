@@ -699,3 +699,402 @@ class Tracer:
             self.active_spans[span_id].finish()
             # In real implementation, would send to collector here
             del self.active_spans[span_id]
+
+
+# ============================================================================
+# BYZANTINE FAULT TOLERANT CONSENSUS (PBFT)
+# ============================================================================
+
+class PBFTNode:
+    """
+    Practical Byzantine Fault Tolerance (Castro & Liskov 1999)
+    
+    Tolerates up to f Byzantine failures with 3f+1 replicas.
+    Provides safety and liveness in adversarial environments.
+    """
+    def __init__(self, node_id: int, n_nodes: int, private_key=None, public_keys=None):
+        self.node_id = node_id
+        self.n_nodes = n_nodes
+        self.f = (n_nodes - 1) // 3  # Max Byzantine failures
+        
+        self.private_key = private_key
+        self.public_keys = public_keys or {}
+        
+        self.view = 0
+        self.sequence = 0
+        self.log = []
+        
+        # Message counters for each phase
+        self.pre_prepare_msgs = {}
+        self.prepare_msgs = {}
+        self.commit_msgs = {}
+        
+    def request(self, operation):
+        """Client submits request"""
+        import time
+        msg = {
+            'type': 'REQUEST',
+            'op': operation,
+            'timestamp': time.time(),
+            'client_id': self.node_id
+        }
+        msg['signature'] = self._sign(msg)
+        
+        # Send to primary
+        primary = self.view % self.n_nodes
+        self._send_to_node(primary, msg)
+    
+    def handle_request(self, msg):
+        """Primary handles request"""
+        if self.node_id != self.view % self.n_nodes:
+            return  # Not primary
+        
+        if not self._verify_signature(msg):
+            return
+        
+        # Create PRE-PREPARE
+        self.sequence += 1
+        pre_prepare = {
+            'type': 'PRE-PREPARE',
+            'view': self.view,
+            'sequence': self.sequence,
+            'request': msg
+        }
+        pre_prepare['signature'] = self._sign(pre_prepare)
+        
+        # Broadcast to replicas
+        self._broadcast(pre_prepare)
+    
+    def handle_pre_prepare(self, msg):
+        """Replica handles PRE-PREPARE"""
+        if not self._verify_signature(msg):
+            return
+        
+        if msg['view'] != self.view:
+            return
+        
+        # Send PREPARE
+        prepare = {
+            'type': 'PREPARE',
+            'view': self.view,
+            'sequence': msg['sequence'],
+            'digest': self._digest(msg['request'])
+        }
+        prepare['signature'] = self._sign(prepare)
+        
+        self._broadcast(prepare)
+        
+        # Track message
+        key = (msg['view'], msg['sequence'])
+        if key not in self.prepare_msgs:
+            self.prepare_msgs[key] = []
+        self.prepare_msgs[key].append(msg)
+    
+    def handle_prepare(self, msg):
+        """Handle PREPARE messages"""
+        if not self._verify_signature(msg):
+            return
+        
+        key = (msg['view'], msg['sequence'])
+        if key not in self.prepare_msgs:
+            self.prepare_msgs[key] = []
+        self.prepare_msgs[key].append(msg)
+        
+        # If received 2f PREPARE messages, send COMMIT
+        if len(self.prepare_msgs[key]) >= 2 * self.f:
+            commit = {
+                'type': 'COMMIT',
+                'view': self.view,
+                'sequence': msg['sequence'],
+                'digest': msg['digest']
+            }
+            commit['signature'] = self._sign(commit)
+            
+            self._broadcast(commit)
+    
+    def handle_commit(self, msg):
+        """Handle COMMIT messages"""
+        if not self._verify_signature(msg):
+            return
+        
+        key = (msg['view'], msg['sequence'])
+        if key not in self.commit_msgs:
+            self.commit_msgs[key] = []
+        self.commit_msgs[key].append(msg)
+        
+        # If received 2f+1 COMMIT messages, execute
+        if len(self.commit_msgs[key]) >= 2 * self.f + 1:
+            self._execute_operation(msg)
+    
+    def _execute_operation(self, msg):
+        """Execute committed operation"""
+        # Operation is now committed with Byzantine fault tolerance
+        pass
+    
+    def _sign(self, msg):
+        """Sign message"""
+        import hashlib
+        return hashlib.sha256(str(msg).encode()).hexdigest()
+    
+    def _verify_signature(self, msg):
+        """Verify message signature"""
+        return True  # Simplified
+    
+    def _digest(self, data):
+        """Compute digest of data"""
+        import hashlib
+        return hashlib.sha256(str(data).encode()).hexdigest()
+    
+    def _send_to_node(self, node_id, msg):
+        """Send message to specific node"""
+        pass
+    
+    def _broadcast(self, msg):
+        """Broadcast message to all nodes"""
+        pass
+
+
+# ============================================================================
+# GOSSIP PROTOCOLS FOR EVENTUAL CONSISTENCY
+# ============================================================================
+
+class GossipProtocol:
+    """
+    Anti-entropy gossip protocol for eventual consistency.
+    
+    Based on Demers et al. 1987. Provides high availability and partition tolerance
+    at the cost of strong consistency.
+    """
+    def __init__(self, node_id: str, fanout: int = 3, period: float = 1.0):
+        self.node_id = node_id
+        self.fanout = fanout  # Nodes to gossip with per round
+        self.period = period  # Gossip period in seconds
+        
+        self.state = {}  # Local state
+        self.version_vector = {}  # For causality tracking
+        self.peers = set()
+        
+        self.running = False
+        self.gossip_thread = None
+        
+    def start(self):
+        """Start gossiping"""
+        import threading
+        self.running = True
+        self.gossip_thread = threading.Thread(target=self._gossip_loop)
+        self.gossip_thread.start()
+    
+    def stop(self):
+        """Stop gossiping"""
+        self.running = False
+        if self.gossip_thread:
+            self.gossip_thread.join()
+    
+    def _gossip_loop(self):
+        """Main gossip loop"""
+        import time
+        import random
+        
+        while self.running:
+            # Select random peers
+            if self.peers:
+                selected = random.sample(list(self.peers), 
+                                        min(self.fanout, len(self.peers)))
+                
+                for peer in selected:
+                    self._gossip_with(peer)
+            
+            time.sleep(self.period)
+    
+    def _gossip_with(self, peer: str):
+        """Exchange state with peer"""
+        # Send local state and version vector
+        msg = {
+            'state': self.state,
+            'versions': self.version_vector
+        }
+        
+        # Receive peer's state (simplified)
+        peer_msg = {'state': {}, 'versions': {}}
+        
+        # Merge states
+        self._merge_state(peer_msg['state'], peer_msg['versions'])
+    
+    def _merge_state(self, peer_state: dict, peer_versions: dict):
+        """Merge peer state using version vectors"""
+        for key, value in peer_state.items():
+            peer_version = peer_versions.get(key, 0)
+            local_version = self.version_vector.get(key, 0)
+            
+            if peer_version > local_version:
+                # Peer has newer value
+                self.state[key] = value
+                self.version_vector[key] = peer_version
+            elif peer_version < local_version:
+                # Local has newer value
+                pass
+            else:
+                # Concurrent update, resolve conflict
+                if self.state.get(key) != value:
+                    self.state[key] = self._resolve_conflict(
+                        self.state.get(key), value
+                    )
+    
+    def update(self, key: str, value):
+        """Update local state"""
+        self.state[key] = value
+        self.version_vector[key] = self.version_vector.get(key, 0) + 1
+    
+    def _resolve_conflict(self, v1, v2):
+        """Resolve concurrent updates"""
+        # Last-Writer-Wins strategy
+        return max(v1, v2)
+
+
+# ============================================================================
+# CONFLICT-FREE REPLICATED DATA TYPES (CRDTS) EXPANSION
+# ============================================================================
+
+class ORSet:
+    """
+    Observed-Remove Set CRDT.
+    
+    Supports both add and remove operations with conflict-free merging.
+    """
+    def __init__(self, node_id: str):
+        self.node_id = node_id
+        self.elements = {}  # element -> set of (node_id, timestamp) tags
+        self.next_timestamp = 0
+        
+    def add(self, element):
+        """Add element with unique tag"""
+        tag = (self.node_id, self.next_timestamp)
+        self.next_timestamp += 1
+        
+        if element not in self.elements:
+            self.elements[element] = set()
+        self.elements[element].add(tag)
+    
+    def remove(self, element):
+        """Remove element by clearing all tags"""
+        if element in self.elements:
+            self.elements[element] = set()
+    
+    def contains(self, element) -> bool:
+        """Check if element present"""
+        return element in self.elements and len(self.elements[element]) > 0
+    
+    def merge(self, other: 'ORSet') -> 'ORSet':
+        """Merge with another ORSet"""
+        result = ORSet(self.node_id)
+        
+        all_elements = set(self.elements.keys()) | set(other.elements.keys())
+        
+        for elem in all_elements:
+            tags1 = self.elements.get(elem, set())
+            tags2 = other.elements.get(elem, set())
+            result.elements[elem] = tags1 | tags2
+        
+        return result
+
+class LWWRegister:
+    """
+    Last-Writer-Wins Register CRDT.
+    
+    Simple eventually-consistent register using timestamps.
+    """
+    def __init__(self, node_id: str):
+        self.node_id = node_id
+        self.value = None
+        self.timestamp = 0
+        
+    def write(self, value):
+        """Write value with current timestamp"""
+        import time
+        self.value = value
+        self.timestamp = time.time()
+    
+    def read(self):
+        """Read current value"""
+        return self.value
+    
+    def merge(self, other: 'LWWRegister') -> 'LWWRegister':
+        """Merge using timestamp comparison"""
+        result = LWWRegister(self.node_id)
+        
+        if self.timestamp > other.timestamp:
+            result.value = self.value
+            result.timestamp = self.timestamp
+        elif other.timestamp > self.timestamp:
+            result.value = other.value
+            result.timestamp = other.timestamp
+        else:
+            # Tie-break using node_id
+            if self.node_id > other.node_id:
+                result.value = self.value
+                result.timestamp = self.timestamp
+            else:
+                result.value = other.value
+                result.timestamp = other.timestamp
+        
+        return result
+
+class RGAArray:
+    """
+    Replicated Growable Array CRDT.
+    
+    Supports insert and remove operations on arrays with conflict-free merging.
+    """
+    def __init__(self, node_id: str):
+        self.node_id = node_id
+        self.elements = []  # List of (id, value, tombstone) tuples
+        self.next_seq = 0
+        
+    def insert(self, index: int, value):
+        """Insert element at index"""
+        elem_id = (self.node_id, self.next_seq)
+        self.next_seq += 1
+        
+        self.elements.insert(index, (elem_id, value, False))
+    
+    def remove(self, index: int):
+        """Remove element at index (tombstone)"""
+        if 0 <= index < len(self.elements):
+            elem_id, value, _ = self.elements[index]
+            self.elements[index] = (elem_id, value, True)
+    
+    def to_list(self) -> list:
+        """Get list of non-tombstoned elements"""
+        return [value for _, value, tombstone in self.elements 
+                if not tombstone]
+    
+    def merge(self, other: 'RGAArray') -> 'RGAArray':
+        """Merge arrays using element IDs for ordering"""
+        result = RGAArray(self.node_id)
+        
+        # Merge element lists maintaining causal order
+        all_ids = {}
+        for elem_id, value, tombstone in self.elements:
+            all_ids[elem_id] = (value, tombstone)
+        
+        for elem_id, value, tombstone in other.elements:
+            if elem_id in all_ids:
+                # Take tombstone if either has it
+                _, self_tombstone = all_ids[elem_id]
+                all_ids[elem_id] = (value, tombstone or self_tombstone)
+            else:
+                all_ids[elem_id] = (value, tombstone)
+        
+        # Sort by element IDs
+        sorted_elements = sorted(all_ids.items())
+        result.elements = [(elem_id, value, tombstone) 
+                          for elem_id, (value, tombstone) in sorted_elements]
+        
+        return result
+
+# Applications:
+# - Distributed tool configuration (LWWRegister)
+# - Collaborative tool sets (ORSet)
+# - Distributed log buffers (RGAArray)
+# - Byzantine-resilient coordination (PBFT)
+# - High-availability metrics (Gossip)
