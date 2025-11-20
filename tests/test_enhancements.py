@@ -235,7 +235,7 @@ class TestResourceGovernorIntegration:
 
         config = ToolConfig(tool_name="test")
         tool = PatternPrevalenceQuantifier(config, clock=clock)
-        handle = registry.register_tool(tool)
+        registry.register_tool(tool)
 
         # Check that tool is registered with governor
         stats = registry._resource_governor.get_statistics()
