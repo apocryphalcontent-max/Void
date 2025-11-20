@@ -91,14 +91,17 @@ class ResourceGovernor:
     - Integration with ToolRegistry for automatic enforcement
     """
 
-    def __init__(self, policy: Optional[QuotaPolicy] = None):
+    def __init__(self, policy: Optional[QuotaPolicy] = None, clock: Optional['Clock'] = None):
         """
         Initialize the ResourceGovernor.
 
         Args:
             policy: Quota enforcement policy (uses default if None).
+            clock: Optional clock instance for time tracking.
         """
+        from .clock import get_clock
         self.policy = policy or QuotaPolicy()
+        self._clock = clock or get_clock()
 
         # Tool resource tracking
         self._tool_usage: Dict[str, deque] = {}  # deque of ResourceUsage
