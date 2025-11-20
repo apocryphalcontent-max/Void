@@ -648,8 +648,12 @@ class BehavioralAnomalyDetector(LayeredTool, MonitoringTool):
 
     def _state_hash(self, state: Dict[str, Any]) -> str:
         """Create a hash of a state for comparison."""
-        # Sort keys for consistent hashing
-        state_str = json.dumps(state, sort_keys=True)
+        # Sort keys for consistent hashing, with fallback for non-serializable objects
+        try:
+            state_str = json.dumps(state, sort_keys=True, default=str)
+        except (TypeError, ValueError):
+            # Fallback for truly non-serializable objects
+            state_str = str(sorted(state.items()))
         return hashlib.md5(state_str.encode()).hexdigest()[:8]
 
     def _assess_risk(self, deviation_score: float, deviation_count: int) -> str:

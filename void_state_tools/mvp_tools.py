@@ -10,6 +10,7 @@ This module implements the remaining Phase 1 tools:
 from typing import Dict, Any, Set, List, Optional
 from collections import defaultdict, Counter
 import math
+import json
 
 from .base import Tool, ToolConfig, AnalysisTool, MonitoringTool
 from .clock import Clock, get_clock
@@ -397,8 +398,23 @@ class LocalEntropyMicroscope(LayeredTool, MonitoringTool):
         if not states:
             return 0.0
 
+        # Convert states to hashable representation
+        hashable_states = []
+        for s in states:
+            try:
+                # Try to use state as-is if it's already hashable
+                hash(s)
+                hashable_states.append(s)
+            except TypeError:
+                # For non-hashable states, use JSON serialization
+                try:
+                    hashable_states.append(json.dumps(s, sort_keys=True, default=str))
+                except (TypeError, ValueError):
+                    # Fallback to string representation for completely non-serializable objects
+                    hashable_states.append(str(type(s).__name__) + str(id(s)))
+
         # Count occurrences
-        counts = Counter(str(s) for s in states)
+        counts = Counter(hashable_states)
         total = len(states)
 
         # Calculate entropy: H = -Σ p(x) * log2(p(x))
@@ -534,6 +550,10 @@ class EventSignatureClassifier(LayeredTool, Tool):
 
         # Smoothing parameter (Laplace smoothing)
         self.smoothing_alpha = config.parameters.get('smoothing_alpha', 1.0)
+
+        # Feature extraction thresholds
+        self.size_small_threshold = config.parameters.get('size_small_threshold', 100)
+        self.size_medium_threshold = config.parameters.get('size_medium_threshold', 10000)
 
         # Classification history
         self.classification_history: List[Dict[str, Any]] = []
@@ -786,9 +806,9 @@ class EventSignatureClassifier(LayeredTool, Tool):
 
         # Value-based features
         if "size" in event and isinstance(event["size"], (int, float)):
-            if event["size"] < 100:
+            if event["size"] < self.size_small_threshold:
                 features.append("size_small")
-            elif event["size"] < 10000:
+            elif event["size"] < self.size_medium_threshold:
                 features.append("size_medium")
             else:
                 features.append("size_large")

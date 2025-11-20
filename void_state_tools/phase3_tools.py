@@ -283,6 +283,16 @@ class ToolSynthesizer(LayeredTool, SynthesisTool):
         """Validate tool specification."""
         errors = []
 
+        # Validate tool_name is a valid Python identifier
+        if not spec.tool_name.isidentifier():
+            errors.append(f"Invalid tool name: {spec.tool_name} (must be a valid Python identifier)")
+        
+        # Validate description doesn't contain code injection patterns
+        if '"""' in spec.description or "'''" in spec.description:
+            errors.append("Description contains triple quotes which could break code generation")
+        if '\n' in spec.tool_name:
+            errors.append("Tool name contains newlines which is not allowed")
+
         # Check required primitives exist
         for primitive_id in spec.required_primitives:
             if primitive_id not in self._primitives:
@@ -304,6 +314,9 @@ class ToolSynthesizer(LayeredTool, SynthesisTool):
 
     def _generate_tool_code(self, spec: ToolSpecification) -> str:
         """Generate Python code for the tool."""
+        
+        # Sanitize description for safe inclusion in docstring
+        safe_description = spec.description.replace('"""', "'''").replace('\n', ' ')
 
         # Generate imports
         imports = [
@@ -317,7 +330,7 @@ class ToolSynthesizer(LayeredTool, SynthesisTool):
         base_class = spec.tool_type
         class_def = f"""
 class {spec.tool_name}(LayeredTool, {base_class}):
-    \"\"\"{spec.description}
+    \"\"\"{safe_description}
 
     Phase: {spec.phase}
     Layer: {spec.layer}
@@ -378,7 +391,7 @@ class {spec.tool_name}(LayeredTool, {base_class}):
             "name": "{spec.tool_name}",
             "category": "synthesized",
             "version": "1.0.0",
-            "description": "{spec.description}",
+            "description": "{safe_description}",
             "capabilities": set(),
             "dependencies": set(),
             "layer": {spec.layer},
@@ -430,7 +443,55 @@ class {spec.tool_name}(LayeredTool, {base_class}):
 
     def _compile_tool(self, code: str, tool_name: str) -> Type[Tool]:
         """Compile tool code into a class."""
-        # Create namespace for execution
+        # Validate code is safe by parsing AST first
+        try:
+            tree = ast.parse(code)
+        except SyntaxError as e:
+            raise ValueError(f"Generated code has syntax errors: {e}")
+        
+        # Check for dangerous operations
+        for node in ast.walk(tree):
+            # Disallow dangerous built-ins
+            if isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Name):
+                    if node.func.id in ['eval', 'exec', '__import__', 'compile', 'open']:
+                        raise ValueError(f"Dangerous operation '{node.func.id}' not allowed in synthesized code")
+            # Disallow attribute access to dangerous modules
+            if isinstance(node, ast.Attribute):
+                if isinstance(node.value, ast.Name):
+                    if node.value.id in ['os', 'sys', 'subprocess', '__builtins__']:
+                        raise ValueError(f"Access to dangerous module '{node.value.id}' not allowed")
+        
+        # Validate tool_name is a valid identifier
+        if not tool_name.isidentifier():
+            raise ValueError(f"Invalid tool name: {tool_name}")
+        
+        # Create namespace for execution with restricted builtins
+        safe_builtins = {
+            '__builtins__': {
+                'dict': dict,
+                'list': list,
+                'tuple': tuple,
+                'set': set,
+                'str': str,
+                'int': int,
+                'float': float,
+                'bool': bool,
+                'len': len,
+                'sum': sum,
+                'abs': abs,
+                'min': min,
+                'max': max,
+                'range': range,
+                'enumerate': enumerate,
+                'zip': zip,
+                'sorted': sorted,
+                'isinstance': isinstance,
+                'hasattr': hasattr,
+                'getattr': getattr,
+            }
+        }
+        
         namespace = {
             "Tool": Tool,
             "ToolConfig": ToolConfig,
@@ -444,8 +505,9 @@ class {spec.tool_name}(LayeredTool, {base_class}):
             "List": List,
             "Optional": Optional,
         }
+        namespace.update(safe_builtins)
 
-        # Execute code to define class
+        # Execute code to define class in restricted environment
         exec(code, namespace)
 
         # Return the class

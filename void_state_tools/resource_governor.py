@@ -314,7 +314,7 @@ class ResourceGovernor:
 
         # Record violation
         record = ViolationRecord(
-            timestamp=time.time(),
+            timestamp=self._clock.now(),
             tool_id=tool_id,
             violation_type=violation_type,
             actual_value=actual_value,
