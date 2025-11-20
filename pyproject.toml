@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "void-state"
-version = "1.0.0-mvp-complete"
+version = "1.0.0"
 description = "Layered AI system architecture for introspection, maintenance, education, mutation, and defense"
 readme = "README.md"
 license = {text = "Proprietary"}

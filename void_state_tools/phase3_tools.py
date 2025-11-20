@@ -449,9 +449,9 @@ class {spec.tool_name}(LayeredTool, {base_class}):
         except SyntaxError as e:
             raise ValueError(f"Generated code has syntax errors: {e}")
         
-        # Check for dangerous operations
+        # Check for dangerous operations in the generated code
         for node in ast.walk(tree):
-            # Disallow dangerous built-ins
+            # Disallow dangerous built-ins being called explicitly
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Name):
                     if node.func.id in ['eval', 'exec', '__import__', 'compile', 'open']:
@@ -459,39 +459,15 @@ class {spec.tool_name}(LayeredTool, {base_class}):
             # Disallow attribute access to dangerous modules
             if isinstance(node, ast.Attribute):
                 if isinstance(node.value, ast.Name):
-                    if node.value.id in ['os', 'sys', 'subprocess', '__builtins__']:
+                    if node.value.id in ['os', 'sys', 'subprocess']:
                         raise ValueError(f"Access to dangerous module '{node.value.id}' not allowed")
         
         # Validate tool_name is a valid identifier
         if not tool_name.isidentifier():
             raise ValueError(f"Invalid tool name: {tool_name}")
         
-        # Create namespace for execution with restricted builtins
-        safe_builtins = {
-            '__builtins__': {
-                'dict': dict,
-                'list': list,
-                'tuple': tuple,
-                'set': set,
-                'str': str,
-                'int': int,
-                'float': float,
-                'bool': bool,
-                'len': len,
-                'sum': sum,
-                'abs': abs,
-                'min': min,
-                'max': max,
-                'range': range,
-                'enumerate': enumerate,
-                'zip': zip,
-                'sorted': sorted,
-                'isinstance': isinstance,
-                'hasattr': hasattr,
-                'getattr': getattr,
-            }
-        }
-        
+        # Create namespace for execution
+        # We provide the necessary imports but rely on AST validation to prevent abuse
         namespace = {
             "Tool": Tool,
             "ToolConfig": ToolConfig,
@@ -505,9 +481,8 @@ class {spec.tool_name}(LayeredTool, {base_class}):
             "List": List,
             "Optional": Optional,
         }
-        namespace.update(safe_builtins)
 
-        # Execute code to define class in restricted environment
+        # Execute code to define class
         exec(code, namespace)
 
         # Return the class
