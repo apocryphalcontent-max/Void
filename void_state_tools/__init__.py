@@ -56,10 +56,13 @@ from .phase2_tools import (
     ThreatSignatureRecognizer,
     BehavioralAnomalyDetector,
     NoveltyDetector,
+    EmergentPatternRecognizer,
     # Layer 3 Tools
     TimelineBranchingEngine,
     ProphecyEngine,
     ExternalInterferenceDetector,
+    ObserverEffectDetector,
+    CausalInterventionSimulator,
     # Data types
     ThreatType,
     Severity,
@@ -73,6 +76,9 @@ from .phase2_tools import (
     ProphecyDistribution,
     NoveltyScore,
     InterferenceReport,
+    EmergentPattern,
+    ObservationImpact,
+    CausalIntervention,
 )
 
 # Phase 3 Tools (Advanced - Meta-Tooling)
@@ -137,9 +143,12 @@ __all__ = [
     "ThreatSignatureRecognizer",
     "BehavioralAnomalyDetector",
     "NoveltyDetector",
+    "EmergentPatternRecognizer",
     "TimelineBranchingEngine",
     "ProphecyEngine",
     "ExternalInterferenceDetector",
+    "ObserverEffectDetector",
+    "CausalInterventionSimulator",
 
     # Phase 2 Data Types
     "ThreatType",
@@ -154,6 +163,9 @@ __all__ = [
     "ProphecyDistribution",
     "NoveltyScore",
     "InterferenceReport",
+    "EmergentPattern",
+    "ObservationImpact",
+    "CausalIntervention",
 
     # Phase 3 Advanced Tools
     "ToolSynthesizer",
@@ -194,9 +206,12 @@ def get_phase2_tools():
         ThreatSignatureRecognizer,
         BehavioralAnomalyDetector,
         NoveltyDetector,
+        EmergentPatternRecognizer,
         TimelineBranchingEngine,
         ProphecyEngine,
         ExternalInterferenceDetector,
+        ObserverEffectDetector,
+        CausalInterventionSimulator,
     ]
 
 
@@ -222,7 +237,7 @@ def get_deployment_status():
         "version": __version__,
         "total_tools": len(get_all_tools()),
         "total_planned": 47,
-        "completion_percentage": f"{int((len(get_all_tools()) / 47) * 100)}%",
+        "completion_percentage": f"{int((len(get_all_tools()) / 47) * 100)}%",  # 16/47 = 34%
         "phase1": {
             "status": "complete",
             "progress": "100%",
@@ -232,16 +247,19 @@ def get_deployment_status():
         },
         "phase2": {
             "status": "active",
-            "progress": "40%",  # 6 of 15 planned tools
-            "tools_complete": 6,
+            "progress": "60%",  # 9 of 15 planned tools
+            "tools_complete": 9,
             "tools_total": 15,
             "tools": [
                 "ThreatSignatureRecognizer",
                 "BehavioralAnomalyDetector",
                 "NoveltyDetector",
+                "EmergentPatternRecognizer",
                 "TimelineBranchingEngine",
                 "ProphecyEngine",
-                "ExternalInterferenceDetector"
+                "ExternalInterferenceDetector",
+                "ObserverEffectDetector",
+                "CausalInterventionSimulator"
             ],
         },
         "phase3": {
