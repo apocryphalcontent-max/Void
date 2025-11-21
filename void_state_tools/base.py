@@ -6,7 +6,7 @@ This module defines the core abstractions that all tools must implement.
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
+from typing import Any, Dict, Optional, TYPE_CHECKING
 from dataclasses import dataclass, field
 import uuid
 

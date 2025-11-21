@@ -10,7 +10,7 @@ This module provides sophisticated hook infrastructure with:
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional
 from dataclasses import dataclass, field
 from collections import defaultdict
 import threading
