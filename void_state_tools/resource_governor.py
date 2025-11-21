@@ -9,7 +9,7 @@ quotas are violated.
 import time
 import threading
 from typing import Dict, Optional, Callable, List, Any, TYPE_CHECKING
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from collections import deque
 
